@@ -1,0 +1,83 @@
+---
+title: "Visualizacion de datos con R: Instalacion de Tidyverse"
+author: "Mario Morales"
+format: 
+  beamer:
+    theme: "CambridgeUS"
+    fonttheme: "professionalfonts"
+editor: visual
+---
+
+# Guía de instalación de Tidyverse
+
+## Introducción 
+
+Tidyverse es el estándar para la ciencia de datos en R, una vez instado, el manejo de datos se vuelve mucho más intuitivo y elegante. Esta herramienta será indispensable en el curso __Visualización de datos con R__.
+
+En este documento se dan las instrucciones paso a paso para la instalación: 
+
+## Guía de Instalación y Configuración del Tidyverse
+
+1. ¿Qué es el Tidyverse? 
+
+Tidyverse no es una sola herramienta, sino una colección de paquetes (como `ggplot2` para gráficos, `dplyr` para manipulación de datos y `readr` para leer archivos `CSV`) que comparten la misma filosofía y estructura de datos.
+
+2. Paso de Instalación
+
+Abre la consola de R o RStudio y ejecuta el siguiente comando. Es fundamental escribirlo exactamente así, incluyendo las comillas:
+
+## Código
+
+```{r}
+#| echo: true
+#| eval: false
+install.packages("tidyverse")
+```
+
+Nota 1: El computador debe estar conectado a Internet, porque la librería se descarga del repositorio de R (Cran). 
+
+Nota 2: Este proceso puede tardar un par de minutos porque R está descargando e instalando cerca de 10-15 paquetes diferentes de forma simultánea.
+
+## Activación del Entorno
+
+Instalar el paquete solo se hace una vez en el computador. Sin embargo, cada vez que usted inicie un nuevo script o sesión de trabajo, debe "llamar" a las herramientas usando el comando `library()`:
+
+```{r}
+#| echo: true
+#| eval: false
+library("tidyverse")
+```
+
+
+Al ejecutar esto, R mostrará un mensaje confirmando que los paquetes principales (como `ggplot2`, `tibble`, `tidyr`, `readr`, `purrr`,  `dplyr`, `stringr` y `forcats`) están cargados y listos para usar.
+
+## Prueba de Funcionamiento
+
+Para confirmar que todo está bien instalado,  ejecute el siguiente de prueba con el `dataset` `mpg` (que viene incluido en `Tidyverse`): 
+
+```{r}
+#| echo: true
+#| eval: false
+# Crear un gráfico rápido para verificar que
+# tidyverse funciona
+library(tidyverse)
+ggplot(data=mpg) + 
+  geom_point(mapping=aes(x=displ, y=hwy,color = class))+
+labs(title="Consumo vs Cilindrada",
+       subtitle = "La instalación fue un éxito")
+```
+
+## Resultado 
+
+```{r}
+#| echo: false
+#| eval: true
+# Crear un gráfico rápido para verificar que tidyverse funciona
+library(tidyverse)
+ggplot(data = mpg) + 
+geom_point(mapping=aes(x = displ, y = hwy, color = class))+ 
+labs(title="Consumo vs Cilindrada",
+       subtitle = "La instalación fue un éxito")
+```
+
+

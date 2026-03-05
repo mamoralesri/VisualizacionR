@@ -1,0 +1,481 @@
+---
+title: "Visualizacion de datos con R"
+author: "Mario Morales"
+format: 
+  beamer:
+    theme: "CambridgeUS"
+    fonttheme: "professionalfonts"
+    code-overflow: wrap
+execute:
+  echo: true      # Opcional: muestra el código en las diapositivas
+  warning: false  # Opcional: oculta advertencias
+  fig-width: 8    # Ancho global en pulgadas
+  fig-height: 5   # Alto global en pulgadas
+  fig-align: center
+editor: source
+---
+
+# Visualizacion de datos con ggplot2
+
+## Introducción
+
+R tiene varios sistemas para realizar gráficos, pero ggplot2 es uno de los más elegantes y versátiles.
+
+-   ggplot2 implementa la gramática de gráficos, un sistema coherente para describir y construir gráficos.
+
+-   Con ggplot2, puedes hacer más cosas más rápido aprendiendo un sistema y aplicándolo en muchos lugares.
+
+## Prerequisitos
+
+Para acceder a los conjuntos de datos, páginas de ayuda y funciones que usaremos en este capítulo, cargue tidyverse ejecutando este código
+
+```{r echo=TRUE}
+library(tidyverse)
+```
+
+## Primeros pasos
+
+Utilicemos nuestro primer gráfico para responder una pregunta:
+
+-   ¿los automóviles con motores grandes consumen más combustible que los automóviles con motores pequeños?
+
+-   Probablemente ya tengas una respuesta, pero intenta que tu respuesta sea precisa.
+
+-   ¿Cómo es la relación entre el tamaño del motor y la eficiencia del combustible?
+
+    -   ¿Es positivo?
+    -   ¿Negativo?
+    -   ¿Lineal?
+    -   ¿No lineal?
+
+## El marco de datos de `mpg`
+
+```{r,echo=TRUE,eval=FALSE}
+mpg
+```
+
+## El marco de datos de `mpg`
+
+`mpg` contiene observaciones recopiladas por la Agencia de Protección Ambiental de EE. UU. sobre 38 modelos de automóviles:
+
+```{r}
+mpg
+```
+
+## Variables en `mpg`
+
+Entre las variables en mpg están:
+
+-   displ, tamaño del motor de un automóvil, en litros.
+
+-   hwy, la eficiencia de combustible de un automóvil en la carretera, en millas por galón (mpg).
+
+**Nota:** Un automóvil con una eficiencia de combustible baja consume más combustible que un automóvil con una eficiencia de combustible alta cuando recorren la misma distancia.
+
+-   Para obtener más información sobre mpg, abra su página de ayuda ejecutando ?mpg.
+
+<!--
+## Creando un gráfico con ggplot
+
+Para realizar un gráfico de dispersión con `displ` en el eje `x` y `hwy` en el eje `y` ejecutamos el siguiente código
+
+```{r echo=TRUE, eval=FALSE}
+ggplot(data=mpg,mapping = aes(x=displ,y=hwy)) + 
+  geom_point() 
+```
+-->
+## Creando un gráfico con ggplot
+
+Para realizar un gráfico de dispersión con `displ` en el eje `x` y `hwy` en el eje `y` ejecutamos el siguiente código
+
+```{r echo=TRUE, eval=FALSE}
+ggplot(data=mpg) + 
+  geom_point(mapping = aes(x=displ,y=hwy)) 
+```
+
+## Resultado
+
+```{r}
+#| echo: false
+ggplot(data=mpg,mapping = aes(x=displ,y=hwy)) + 
+  geom_point() 
+```
+
+## Conclusión
+
+-   El gráfico muestra una relación negativa entre el tamaño del motor (displ) y la eficiencia del combustible (carretera).
+
+-   En otras palabras, los coches con motores grandes consumen más combustible.
+
+-   ¿Esto confirma o refuta su hipótesis sobre la eficiencia del combustible y el tamaño del motor?
+
+## Cómo funciona? 
+
+Primero creamos el lienzo donde dibujaremos
+
+```{r echo=TRUE}
+ggplot(data=mpg) # crea un gráfico vacío
+```
+
+
+
+## mapping
+
+El argumento `mapping` siempre se define en la función `aes()`, y los argumentos `x` e `y` de `aes()` especifican qué variables mapear a los ejes `x` e `y`.
+
+```{r echo=TRUE,eval=FALSE}
+ggplot(data=mpg,mapping = aes(x=displ,y=hwy)) 
+```
+
+## mapping
+
+```{r}
+ggplot(data=mpg,mapping = aes(x=displ,y=hwy)) 
+```
+
+## El geom
+
+Nuestro lienzo vacío ahora tiene más estructura:
+
+-   Está claro dónde se mostrarán el tamaño del motor del un automóvi (en el eje x) y dónde se mostrará la eficiencia de combustible de un automóvil en la carretera (en el eje y).
+
+-   Pero los autos aún no están en el gráfico.
+
+-   Esto se debe a que aún no hemos articulado, en nuestro código, cómo representar las observaciones de nuestro marco de datos en el gráfico.
+
+-   Para ello, necesitamos definir una `geom`: el objeto geométrico que utiliza un gráfico para representar datos.
+
+## 
+
+```{r echo=TRUE}
+ggplot(data=mpg,mapping = aes(x=displ,y=hwy)) +  geom_point()
+```
+
+## Autos con alto rendimiento y alto cilindraje
+
+-   En el siguiente gráfico aparece un grupo de puntos (resaltados en rojo) que caen fuera de la tendencia lineal.
+
+-   Estos coches tienen un kilometraje mayor del que se podría esperar.
+
+-   ¿Cómo puedes explicar estos coches?
+
+## Autos con alto rendimiento y alto cilindraje
+
+```{r}
+#| echo: false
+mpg$rojos=mpg$displ>5 & mpg$hwy > 21 
+ggplot(data=mpg,mapping = aes(x=displ,y=hwy,col=rojos)) + 
+  geom_point(size=4) + scale_color_manual(values = c('FALSE' = "black", 'TRUE' = "red"))+theme(legend.position = "none")
+```
+
+## Ejercicio
+
+Escriba el código de `ggplot` que reproduzca de manera idéntica el gráfico anterior. 
+
+
+
+
+## ¿Cómo explicar esto?
+
+-   **Supongamos que los coches son híbridos**.
+
+-   Una forma de probar esta hipótesis es observar el valor de clase de cada automóvil.
+
+-   La variable de clase (`class`) del conjunto de datos mpg clasifica los automóviles en grupos como compactos, medianos y SUV.
+
+-   Si los puntos periféricos son híbridos, deberían clasificarse como automóviles compactos o, tal vez, automóviles subcompactos (tenga en cuenta que estos datos se recopilaron antes de que los camiones y SUV híbridos se volvieran populares).
+
+## Estética
+
+-   Puedes agregar una tercera variable, como la clase, a un diagrama de dispersión bidimensional asignándolo a una estética.
+
+-   Una estética es una propiedad visual de los objetos de la trama.
+
+-   La estética incluye cosas como el tamaño, la forma o el color de tus puntos.
+
+-   Puedes mostrar un punto (como el que se muestra a continuación) de diferentes maneras cambiando los valores de sus propiedades estéticas.
+
+-   Utilizamos la palabra “**nivel**” para describir propiedades estéticas.
+
+-   Por ejemplo cambiar los niveles de tamaño, forma y color de un punto para que el punto sea pequeño, triangular o azul
+
+## Estética: color para la clase de automovil
+
+A continuación asignamos los colores de los puntos a la variable de clase para revelar la clase de cada automóvil.
+
+```{r echo=TRUE, eval=FALSE}
+ggplot(data=mpg,mapping = aes(x=displ,y=hwy, color=class))
+ + geom_point() 
+```
+
+## 
+
+```{r echo=FALSE}
+ggplot(data=mpg,mapping = aes(x=displ,y=hwy, color=class)) + geom_point() 
+```
+
+## Observaciones
+
+-   Los colores revelan que muchos de los puntos inusuales son coches biplaza.
+
+-   ¡Estos coches no parecen híbridos y, de hecho, son coches deportivos!
+
+-   Los autos deportivos tienen motores grandes, como los SUV y las camionetas, pero carrocerías pequeñas, como los autos medianos y compactos, lo que mejora su consumo de combustible.
+
+-   En retrospectiva, era poco probable que estos coches fueran híbridos, ya que tienen motores grandes.
+
+## Otras opciones para estética: `size`
+
+```{r echo=FALSE}
+ggplot(data=mpg,mapping = aes(x=displ,y=hwy, size=class )) + 
+    geom_point()
+```
+
+## Otras opciones para estética: `size`
+
+```{r echo=TRUE,eval=FALSE}
+ggplot(data=mpg,mapping = aes(x=displ, 
+    y=hwy, size=class )) +  geom_point()
+```
+
+## Otras opciones para estética: cambie `size` por `alpha`
+
+```{r echo=FALSE}
+ggplot(data=mpg,mapping = aes(x=displ,y=hwy, alpha=class )) +  geom_point()
+```
+
+
+## Otras opciones para estética: cambie `size` por `alpha`
+
+```{r}
+#| echo: true
+#| eval: false 
+
+ggplot(data=mpg,mapping = aes(x=displ,y=hwy, alpha=class )) +
+  geom_point()
+```
+
+
+
+## Otras opciones para estética: cambie `size` por `shape`
+
+```{r echo=FALSE}
+ggplot(data=mpg,mapping = aes(x=displ,y=hwy, shape=class )) +  geom_point()
+```
+
+
+## Otras opciones para estética: cambie `size` por `shape`
+
+```{r}
+#| echo: true
+ggplot(data=mpg,mapping = aes(x=displ,y=hwy, shape=class )) +  geom_point()
+```
+
+
+## Propiedades estéticas manualmente
+
+También puedes configurar las propiedades estéticas de tu geometría manualmente. Por ejemplo, podemos hacer que todos los puntos de nuestro gráfico sean azules:
+
+```{r echo=TRUE,eval=FALSE}
+ggplot(data=mpg,mapping = aes(x=displ,y=hwy))
+ + geom_point(color='blue') 
+```
+
+## Propiedades estéticas manualmente
+
+
+```{r, echo=TRUE}
+ggplot(data=mpg,mapping = aes(x=displ,y=hwy,color='blue')) +  geom_point() 
+```
+
+
+
+## Propiedades estéticas manualmente
+
+```{r echo=FALSE}
+ggplot(data=mpg,mapping = aes(x=displ,y=hwy)) + geom_point(color='blue') 
+```
+
+## Propiedades estéticas manualmente
+
+::: {.callout-important}
+Aquí, el color no transmite información sobre una variable, sino que solo cambia la apariencia del gráfico. Para establecer una estética manualmente, establezca la estética por nombre como un argumento de su función `geom`; Es decir, va fuera de `aes()`
+
+-   Necesitarás elegir un valor que tenga sentido para esa estética:
+    -   El nombre de un color como una cadena de caracteres.
+    -   El tamaño de un punto en mm.
+    -   La forma de un punto como un número.
+
+::: 
+
+##  
+
+```{r echo=FALSE}
+plot(0:7,0:7,type='n',axes=FALSE,ann=FALSE)
+z=t(matrix(0:24,nrow=5))
+for(x in 1:5){
+ for(y in 1:5){
+  points(x=x,y=y,pch=z[x,y],bg='red')
+  text(x=x,y=y,labels =z[x,y],pos=4 )
+  } 
+}
+
+```
+
+## Ejemplos 
+
+-   ¿Qué está mal con este código? ¿Por qué los puntos no son azules?
+
+```{r echo=TRUE,eval=FALSE}
+ggplot(data = mpg)
+  + geom_point(mapping=aes(x=displ,y=hwy, color="blue") )
+```
+
+-   ¿Qué variables en `mpg` son categóricas? ¿Qué variables son continuas? ¿Cómo puede ver esta información cuando ejecuta mpg?
+
+-   ¿Qué pasa si asignas la misma variable a múltiples estéticas?
+
+-   ¿Qué hace la estética `stroke`? ¿Con qué formas funciona?
+
+-   ¿Qué sucede si asignas una estética a algo distinto a un nombre de variable, como `aes(color = displ < 5)`
+
+## Solución I 
+
+```{r echo=TRUE}
+ggplot(data=mpg, mapping=aes(x=displ,y=hwy, 
+  color=class)) + geom_point(aes(stroke=2.5))
+```
+
+
+## Solución II 
+
+```{r echo=TRUE}
+ggplot(data=mpg, mapping=aes(x=displ, y=hwy, fill=class)) + 
+  geom_point(shape=21, stroke=1.5, size=3, color="black")
+```
+
+
+## penguins data
+
+```{r echo=TRUE}
+library(palmerpenguins)
+penguins
+```
+
+## penguins data
+
+```{r echo=TRUE}
+glimpse(penguins)
+```
+
+## penguins data: Objetivo
+
+Nuestro objetivo final es recrear la siguiente visualización que muestra la relación entre la longitud de las aletas `flipper_length_mm` y las masas corporales de estos pingüinos `body_mass_g`, teniendo en cuenta (mapeando con color y diferenciando por la forma del punto) la especie (`species`) de los pingüinos.
+
+## Gráfico a realizar
+
+```{r echo=FALSE,out.width="90%",out.height="90%"}
+library(ggthemes) 
+ggplot(
+data = penguins,
+mapping = aes(x = flipper_length_mm, y = body_mass_g)
+) + geom_point(mapping = aes(color = species,shape = species)) + scale_color_colorblind()   #+ geom_smooth(method = "lm")  #
+```
+
+## Agregar recta de mejor ajuste
+
+Ahora agreguemos una capa más:
+
+-   Una curva suave que muestre la relación entre la masa corporal y la longitud de la aleta.
+
+-   Hagámoslo a partir del código anterior y piense
+
+## Código del gráfico anterior
+
+A partir del siguiente código agregue la linea de mejor ajuste.
+
+```{r echo=TRUE,eval=FALSE}
+library(ggthemes) 
+ggplot(data = penguins,mapping=aes(x = flipper_length_mm,
+y = body_mass_g, color = species, shape =species))+
+  geom_point() + scale_color_colorblind()   
+```
+
+## Solución 1
+
+```{r echo=FALSE,eval=TRUE}
+ggplot(data = penguins,mapping=aes(x = flipper_length_mm, y = body_mass_g, color = species, shape =species))+
+  geom_point() + geom_smooth(method="lm") + scale_color_colorblind()   
+```
+
+## Solución 1
+
+```{r echo=TRUE,eval=FALSE}
+ggplot(data = penguins,mapping=aes(x = flipper_length_mm,
+ y = body_mass_g, color = species, shape =species)) 
+  + geom_point()
+  + geom_smooth(method="lm")
+  + scale_color_colorblind()   
+```
+
+## Queremos una sola linea para todos los datos
+
+```{r echo=FALSE,eval=TRUE,out.width="90%",out.height="90%"}
+ggplot(data = penguins,mapping=aes(x = flipper_length_mm, y = body_mass_g))+geom_point(aes(color = species, shape =species)) + geom_smooth(method="lm") + scale_color_colorblind()
+#,se=FALSE
+```
+
+## Solución 2
+
+```{r echo=TRUE,eval=FALSE}
+ggplot(data = penguins,mapping=aes(x=flipper_length_mm,
+y = body_mass_g))+geom_point(aes(color = species, shape
+=species))+geom_smooth(method="lm")+scale_color_colorblind()   
+```
+
+## Etiquetas para el gráfico
+
+```{r echo=FALSE,eval=TRUE,out.width="90%",out.height="90%"}
+ggplot(data = penguins,mapping=aes(x = flipper_length_mm, y = body_mass_g))+geom_point(aes(color = species, shape =species)) + geom_smooth(method="lm") + labs(
+title = "Masa corporal y longitud de las alas",
+subtitle = "Dimensiones para pinguinos Adelie, Chinstrap, y Gentoo",
+x = "Longitud de las alas (mm)", y = "Masa corporal (g)") + scale_color_colorblind()   
+```
+
+## Etiquetas para el gráfico
+
+```{r echo=TRUE,eval=FALSE}
++ geom_smooth(method="lm") + labs(title = "Masa corporal y 
+longitud de las alas", subtitle = "Dimensiones para pinguinos
+Adelie, Chinstrap, y Gentoo", x = "Longitud de las alas (mm)", 
+y = "Masa corporal (g)") 
++ scale_color_colorblind()
+```
+
+## Ejercicios
+
+-   ¿Cuántas filas hay en el data pingüinos? ¿Cuántas columnas?
+
+-   ¿Qué describe la variable `bill_depth_mm` en el marco de datos de los pingüinos?
+
+-   Haz un diagrama de dispersión de `bill_depth_mm` versus `bill_length_mm`. Es decir, hacer un diagrama de dispersión con `bill_depth_mm` en el eje `y` y `bill_length_mm` en el eje `x`. Describa la relación entre estas dos variables.
+
+-   ¿Qué sucede si haces un diagrama de dispersión de `especies` versus `bill_depth_mm`? ¿Cuál podría ser una mejor elección de `geom`?
+
+-   ¿Por qué aparece un error en el siguiente código y cómo lo solucionarías?
+
+    -   `ggplot(data = penguins) + geom_point()`
+
+## Ejercicios
+
+-   ¿Qué hace el argumento `na.rm` en `geom_point()`? ¿Cuál es el valor predeterminado del argumento? Cree un diagrama de dispersión en el que utilice con este argumento establecido en `TRUE`.
+
+-   Añade el siguiente pie de página al gráfico que hiciste en el ejercicio anterior: “Los datos provienen del paquete palmerpenguins”. Sugerencia: Eche un vistazo a la documentación de `labs()`
+
+-   Escriba el código `R` para crear la siguiente visualización. ¿A qué estética debería asignarse `bill_depth_mm`? ¿Y debería mapearse a nivel global o a nivel de `geom` ?
+
+## Ejercicios
+
+```{r echo=FALSE,eval=TRUE,out.width="90%",out.height="90%"}
+ggplot(data = penguins,mapping=aes(x=flipper_length_mm,y=body_mass_g))+geom_point(aes(color=bill_depth_mm))+geom_smooth()  
+```
