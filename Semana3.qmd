@@ -1,0 +1,863 @@
+---
+title: "Visualización de datos en R"
+date: today
+date-format: "DD/MM/YYYY"
+author: 
+  - name: Mario Morales
+    affiliations:
+      - name: Universidad de Córdoba, Montería
+execute:
+  fig-width: 6
+  fig-height: 4
+format: 
+  revealjs: 
+    theme: "moon"
+    highlight: "tango"
+    center: true
+    transition: fade
+    lang: es
+    code-fold: true
+    scrollable: true
+  beamer:
+    theme: "CambridgeUS"
+    slide-level: 2
+    keep-tex: false # Cambiado a false para evitar basura de archivos temporales
+    fonttheme: "professionalfonts"
+toc: true
+toc-depth: 1 # <--- ¡CLAVE! Solo nivel 1 para que quepa en la pantalla
+toc-title: "Contenido"
+editor: source
+---
+
+```{r echo=FALSE}
+setwd("~/Documents/Cursos/VisualizacionConR")
+library(reshape)
+library(ggplot2)
+```
+
+# Transformación de datos
+
+## Lectura de los datos
+
+```{r echo=FALSE,out.width="90%",out.height="90%"}
+acuicultura=read.csv2("data/acuicultura.csv")
+# seleccionamos las columnas 
+oxigeno=subset(acuicultura, select=c('PISCINA','dia','OXIGESUP','OXIGEFON'))
+oxigenol=melt(oxigeno,id.vars=c("PISCINA","dia"))
+# cambiamos los nombres de columnas 
+colnames(oxigenol)=c('Piscina','dia','Sitio','Oxigeno') 
+# convertimos sitio en un factor 
+oxigenol$Sitio=factor(oxigenol$Sitio,labels = c('Superf','Fondo'))
+#head(oxigenol)
+# piscina en un factor 
+oxigenol$Piscina=factor(oxigenol$Piscina) 
+#head(oxigenol)
+```
+
+## Ejercicio
+
+-   Haga la lectura de los datos en el archivo `acuicultura.csv`
+    -   ¿Cuántas columnas contiene?
+    -   ¿Cuántas filas contiene?
+    -   ¿Cuántas piscinas se utilizaron en el estudio?
+-   Las columnas `OXIGESUP` y `OXIGEFON` contienen medidas del oxígeno disuelto en la superficie y en el fondo de las piscinas, respectivamente. Escriba el código que permita realizar el siguiente gráfico, donde se comparan las distribuciones de oxígeno en superficie y fondo para cada piscina.
+
+## Ejercicios
+
+```{r echo=FALSE,out.width="90%",out.height="90%"}
+ggplot(oxigenol,aes(x=Piscina,y=Oxigeno,col=Sitio))+geom_boxplot() 
+```
+
+## Introducción
+
+-   La visualización es una herramienta importante para generar información
+
+-   Es raro obtener los datos exactamente en el formato correcto que necesita para crear el gráfico que desea.
+
+-   Necesitarás crear algunas nuevas variables o resúmenes para responder tus preguntas con tus datos
+
+-   Tal vez solo quieras cambiar el nombre de las variables o reordenar las observaciones para que sea un poco más fácil trabajar con los datos.
+
+-   Aprenderemos cómo hacer la transformación de datos utilizando el paquete `dplyr`
+
+## 
+
+-   Ilustraremos las ideas clave utilizando datos del paquete `nycflights13` y usaremos `ggplot2` para ayudarnos a comprender los datos.
+
+```{r echo=TRUE}
+library(tidyverse)
+library(nycflights13)
+```
+
+Para explorar los conceptos básicos de dplyr, usaremos `nycflights13::flights`.
+
+-   Este conjunto de datos contiene los 336.776 vuelos que partieron de la ciudad de Nueva York en 2013.
+
+-   Los datos provienen de la Oficina de Estadísticas de Transporte de EE. UU. y están documentados en `?flights`.
+
+## `tibbles`
+
+-   `flights` es un `tibble`, un tipo especial de marco de datos utilizado por `tidyverse` para evitar algunos problemas comunes.
+
+-   La diferencia más importante entre `tibbles` y `dataframes` es la forma en que se imprimen los `tibbles`
+
+-   Están diseñados para conjuntos de datos grandes, por lo que muestran solo las primeras filas y solo las columnas que caben en una pantalla.
+
+-   Hay algunas opciones para verlo todo. Si está utilizando RStudio, lo más conveniente probablemente sea `View(flights)`, que abrirá una vista interactiva, desplazable y filtrable.
+
+-   De lo contrario, puedes utilizar `print(flights, width = Inf)` para mostrar todas las columnas o usar `glimpse()`:
+
+## Un vistazo a `flights`
+
+```{r echo=TRUE}
+glimpse(flights)
+```
+
+##  `dplyr`  
+
+
+## Lo básico de `dplyr`
+
+-   Aprenderemos las funciones principales de `dplyr`, que nos permitirán resolver la gran mayoría de tus desafíos de manipulación de datos.
+
+-   Antes de analizar sus diferencias individuales, vale la pena señalar lo que tienen en común.
+
+    -   El primer argumento es siempre un marco de datos.
+    -   Los argumentos subsiguientes normalmente describen en qué columnas operar, utilizando los nombres de las variables (sin comillas).
+    -   La salida es siempre un nuevo marco de datos.
+    
+## Lo básico de `dplyr`. El pipe 
+
+-   Debido a que cada función hace solo una cosa, resolver problemas complejos generalmente requerirá combinar varias funciones, y lo haremos con el símbolo `|>`, conocido como `pipe`.
+
+
+
+## Ejemplo de `pipe`
+
+```{r echo=TRUE,eval=FALSE}
+res=flights |> filter(dest == "IAH") |> 
+  group_by(year, month, day) |> summarize( 
+    arr_delay  = mean(arr_delay, na.rm=TRUE)
+    )
+head(res)   
+```
+
+## Resultado
+
+```{r echo=FALSE,eval=TRUE}
+res=flights |> filter(dest == "IAH") |> group_by(year, month, day) |> summarize( arr_delay = mean(arr_delay, na.rm=TRUE) ) 
+head(res)
+```
+
+## Tipos de funciones en `dplyr`
+
+-   Las funciones de `dplyr` están organizadas en cuatro grupos según lo que operan:
+    -   filas,
+    -   columnas,
+    -   grupos y
+    -   tablas.
+-   En las siguientes secciones, aprenderemos las funciones más importantes para filas, columnas y grupos
+-   Luego volveremos a las funciones de unión que funcionan en las tablas.
+
+## Funciones de `dplyr` para filas
+
+Las funciones más importantes de `dplyr`, que operan en las filas de un conjunto de datos son
+
+-   `filter()`, que cambia las filas presentes sin cambiar su orden,
+
+-   `arrange()`, que cambia el orden de las filas sin cambiar las que están presentes.
+
+-   Ambas funciones afectan solo a las filas y las columnas no cambian.
+
+## Funciones de `dplyr` para filas 
+
+-   También analizaremos `distinct()`, que encuentra filas con valores únicos, pero a diferencia de `arrange()` y `filter()`, también puede modificar opcionalmente las columnas.
+
+# Operaciones sobre filas 
+
+## `filter()`
+
+-   `filter()` permite mantener filas en función de los valores de las columnas.
+    -   El primer argumento es el marco de datos.
+    -   El segundo argumento y los subsiguientes son las condiciones que deben ser verdaderas para mantener la fila.
+-   Por ejemplo, podríamos encontrar todos los vuelos que salieron con más de 120 minutos (dos horas) de retraso
+
+```{r echo=TRUE}
+flights |> filter(dep_delay > 120)
+```
+
+## Operadores
+
+-   `>` (mayor que)
+-   `>=` (mayor o igual a)
+-   `<` (menor que),
+-   `<=` (menor o igual a),
+-   `==` (igual a)\
+-   `!=` (no igual a).
+
+También puedes combinar condiciones con
+
+-   `&` para indicar “y” (verifica ambas condiciones)
+-   `|` para indicar “o” (verifica al menos una de las condiciones)
+
+## Ejemplo
+
+Vuelos del primero de enero
+
+```{r echo=TRUE}
+enero1=flights |> filter(month == 1 & day == 1)
+enero1
+```
+
+## Vuelos de enero y febrero
+
+```{r echo=TRUE,eval=FALSE}
+flights |> filter(month == 1 | month == 2) 
+```
+
+Cuando se combina `|` y `==` se puede usar `%in%`. En este caso mantiene las filas donde la variable es igual a uno de los valores de la derecha
+
+```{r echo=TRUE,eval=FALSE}
+flights |> filter(month %in% c(1,2))  
+```
+
+## Guardar el resultado de `filter`
+
+-   Cuando dplyr ejecuta la operación de filtrado, crea un nuevo marco de datos y luego lo imprime.
+
+-   No modifica el conjunto de datos original porque las funciones `dplyr` nunca modifican sus entradas.
+
+-   Para guardar el resultado, debe utilizar el operador de asignación, `<-` o `=`
+
+```{r echo=FALSE,aval=FALSE}
+Enero1 <- flights |> filter(month == 1 & day == 1)
+```
+
+## `arrange()`
+
+-   `arrange()` cambia el orden de las filas según el valor de las columnas.
+
+-   Se necesita un marco de datos y un conjunto de nombres de columnas (o expresiones más complicadas) para ordenar.
+
+-   Si proporciona más de un nombre de columna, cada columna adicional se utilizará para desempatar los valores de las columnas anteriores.
+
+-   Por ejemplo, el siguiente código ordena por la hora de salida, que se distribuye en cuatro columnas. Primero obtenemos los primeros años, luego, dentro de un año, los primeros meses, etc.
+
+```{r echo=TRUE,eval=FALSE}
+flights|>arrange(year, month, day, dep_time)
+```
+
+## Orden descendente
+
+-   Puede utilizar `desc()` en una columna dentro de `arrange()` para reordenar el marco de datos según esa columna en orden descendente (de mayor a menor).
+
+-   Por ejemplo, este código ordena los vuelos de mayor a menor retraso:
+
+```{r echo=TRUE,eval=FALSE}
+flights|>arrange(desc(dep_delay))
+```
+
+## `distinct()`
+
+-   Encuentra todas las filas únicas en un conjunto de datos, por lo que, en sentido técnico, opera principalmente en las filas.
+
+-   Sin embargo, la mayoría de las veces necesitarás la combinación específica de algunas variables, por lo que también puedes proporcionar nombres de columnas de manera opcional.
+
+```{r echo=TRUE,eval=FALSE}
+set.seed(1234)
+d=cbind(rep(c(1,2),c(6,6)) 
+        ,rep(c(1,2),6),
+        round(rnorm(12,10,2),1) )
+d=as_tibble(d); d
+```
+
+```{r echo=FALSE,eval=TRUE}
+set.seed(1234)
+d=cbind(rep(c(1,2),c(6,6)) , rep(c(1,2),6),round(rnorm(12,10,2),1) )
+d=as_tibble(d)
+d
+```
+
+## Continuación
+
+```{r echo=TRUE}
+d|>distinct()
+```
+
+## 
+
+Encontrar todos los pares únicos de `V1` y `V2`
+
+```{r echo=TRUE}
+d |> distinct(V1,V2)
+```
+
+## Mantener las otras columnas
+
+Alternativamente, si desea conservar las otras columnas al filtrar filas únicas, puede utilizar la opción `.keep_all = TRUE`:
+
+```{r echo=TRUE}
+d |> distinct(V1,V2,.keep_all = TRUE)
+```
+
+## Ejercicios I
+
+-   En una única `pipe` para cada condición, encuentre todos los vuelos que cumplan la condición:
+
+    -   Tuvo un retraso de llegada de dos o más horas.
+    -   Voló a Houston (IAH o HOU)
+    -   Fueron operados por United, American o Delta
+    -   Salida en verano (julio, agosto y septiembre)
+    -   Llegó más de dos horas tarde, pero no se fue tarde.
+    -   Tuvieron un retraso de al menos una hora, pero recuperaron más de 30 minutos en vuelo.
+
+-   Ordene los vuelos para encontrar los vuelos con mayores retrasos en la salida. Encuentra los vuelos que salieron más temprano en la mañana.
+
+-   Ordena los vuelos para encontrar los vuelos más rápidos. (Sugerencia: intente incluir un cálculo matemático dentro de su función).
+
+-   ¿Hubo un vuelo todos los días del año 2013?
+
+## Ejercicios II
+
+-   ¿Qué vuelos recorrieron la mayor distancia? ¿Cuál recorrió la menor distancia?
+-   ¿Importa en qué orden utilizaste filter() y organize() si estás usando ¿ambos? ¿Por qué/por qué no? Piense en los resultados y en cuánto trabajo tendrían que realizar las funciones.
+
+## Columnas
+
+Hay cuatro funciones importantes que afectan a las columnas sin cambiar las filas:
+
+-   `mutate()` crea nuevas columnas que se derivan de las columnas existentes,
+-   `select()` cambia las columnas que están presentes,
+-   `rename()` cambia los nombres de las columnas, y\
+-   `relocate()` cambia las posiciones de las columnas.
+
+## `mutate()`
+
+-   El trabajo de `mutate()` es agregar nuevas columnas que se calculan a partir de las columnas existentes.
+-   Más adelante aprenderemos un amplio conjunto de funciones que se pueden usar para manipular diferentes tipos de variables.
+-   Por ahora, nos quedaremos con el álgebra básica, que nos permite calcular la ganancia, cuánto tiempo recuperó en el aire un vuelo retrasado y la velocidad en millas por hora:
+
+```{r echo=TRUE,eval=FALSE}
+flights|>mutate(
+gain = dep_delay - arr_delay,
+speed = distance / air_time * 60
+)
+```
+
+## 
+
+```{r echo=FALSE,eval=TRUE}
+flights|>mutate(
+gain = dep_delay - arr_delay,
+speed = distance / air_time * 60
+)
+```
+
+## Dónde colocar las nuevas columnas?
+
+-   De forma predeterminada, `mutate()` agrega nuevas columnas en el lado derecho de su conjunto de datos, lo que dificulta ver el resultado.
+
+-   Podemos usar el argumento .before para agregar las variables al lado izquierdo
+
+```{r echo=TRUE,eval=TRUE}
+flights|>mutate(
+gain = dep_delay - arr_delay,
+speed = distance / air_time * 60, .before = 1
+) 
+```
+
+## Dónde colocar las nuevas columnas?
+
+-   El `.` (caracter punto) es una señal de que `.before` es un argumento de la función, no el nombre de una tercera variable nueva que estamos creando.
+
+-   También puedes usar `.after` para agregar después de una variable,
+
+-   Tanto en `.before` como en `.after` puedes usar el nombre de la variable en lugar de una posición.
+
+-   Por ejemplo, podríamos agregar las nuevas variables después de `day`:
+
+```{r echo=TRUE,eval=FALSE}
+flights|>mutate(
+gain = dep_delay - arr_delay,
+speed = distance / air_time * 60, .after=day ) 
+```
+
+## `mutate()` ¿qué columnas se conservan?
+
+-   Se puede controlar qué variables se conservan con el argumento `.keep` .
+-   Una opción particularmente útil para `.keep` es "used", que especifica que conservamos solo las columnas que estuvieron involucradas o fueron creadas en el paso `mutate()`.
+-   Por ejemplo, la salida del siguiente código contendrá solo las variables `dep_delay`, `arr_delay`, `air_time`, `gain`, `hours` y `gain_per_hour`:
+
+```{r echo=TRUE,eval=FALSE}
+flights |> mutate(
+gain = dep_delay - arr_delay,
+hours = air_time / 60,
+gain_per_hour = gain / hours,
+.keep = "used") 
+```
+
+## `mutate()` ¿qué columnas se conservan?
+
+```{r echo=FALSE,eval=TRUE}
+flights |> mutate(
+gain = dep_delay - arr_delay,
+hours = air_time / 60,
+gain_per_hour = gain / hours,
+.keep = "used") 
+```
+
+## Observación
+
+-   No hemos asignado el resultado del cálculo anterior a `flights`,
+
+-   Las nuevas variables `gain`, `hours` y `gain_per_hour` solo se imprimirán y no se almacenarán en un marco de datos.
+
+-   Si queremos que estén disponibles en un marco de datos para uso futuro, debemos pensar detenidamente si queremos que el resultado se asigne nuevamente a `flights`
+
+-   Es decir, sobrescribiendo el marco de datos original con muchas más variables, o a un nuevo objeto.
+
+-   A menudo, la respuesta correcta es un nuevo objeto que recibe un nombre informativo para indicar su contenido, por ejemplo, `delay_gain`,
+
+-   Pero también es posible que tenga buenas razones para sobrescribir `flights`.
+
+## `select()`
+
+-   No es raro obtener conjuntos de datos con cientos o incluso miles de variables. En esta situación, el primer desafío suele ser centrarse en las variables que nos interesan.
+
+-   `select()` le permite seleccionar rápidamente un subconjunto útil utilizando operaciones basadas en los nombres de las variables:
+
+-   Seleccionar columnas por nombre:
+
+```{r echo=TRUE,eval=FALSE}
+flights |> select(year, month, day)
+```
+
+-   Seleccionar todas las columnas entre año y día (inclusive):
+
+```{r echo=TRUE,eval=FALSE}
+flights |> select(year:day)
+```
+
+-   Seleccionar todas las columnas excepto las de año a día (inclusive):
+
+```{r echo=TRUE,eval=FALSE}
+flights |> select(!year:day)
+```
+
+## `select()`, continuación
+
+-   Seleccionar todas las columnas que sean de caracteres:
+
+```{r echo=TRUE,eval=FALSE}
+flights|>select(where(is.character))
+```
+
+-   Seleccionar todas las columnas cuyos nombres comienzan con "d"
+
+```{r echo=TRUE,eval=FALSE}
+flights|>select(starts_with("d"))
+```
+
+-   Seleccionar todas las columnas cuyos nombres terminan en "time"
+
+```{r echo=TRUE,eval=FALSE}
+flights|>select(ends_with("time")) 
+```
+
+-   Seleccionar todas las columnas cuyos nombres contienen "time"
+
+```{r echo=TRUE,eval=FALSE}
+flights|>select(contains("time")) 
+```
+
+-   Todas las columnas cuyos nombres coinciden con x1, x2 y x3
+
+```{r echo=TRUE,eval=FALSE}
+flights|>select(num_range("x",1:3))  
+```
+
+## `select()`, continuación
+
+-   Puedes cambiar el nombre de las variables a medida que las seleccionas utilizando `=`.
+-   El nuevo nombre aparece en el lado izquierdo del `=`, y la variable antigua aparece en el lado derecho
+
+```{r echo=TRUE,eval=FALSE}
+flights |> select(tail_num = tailnum)
+```
+
+## `rename()`
+
+-   Si desea conservar todas las variables existentes y solo desea cambiar el nombre de algunas, puede usar `rename()` en lugar de `select()`:
+
+```{r echo=TRUE,eval=FALSE}
+flights |> rename(tail_num = tailnum)
+```
+
+-   Si se quiere renombrar más de una columna se separan con coma.
+
+```{r echo=TRUE,eval=FALSE}
+flights |> rename(tail_num = tailnum,Anio=year) 
+```
+
+## `relocate()`
+
+Utilice relocate() para mover las variables. Es posible que desees recopilar variables relacionadas o mover las variables importantes al frente. De forma predeterminada, relocate() mueve las variables al frente:
+
+```{r echo=TRUE,eval=FALSE}
+flights |> relocate(time_hour, air_time)  
+```
+
+También puedes especificar dónde colocarlos usando los argumentos `.before` y `.after`, tal como en `mutate()`:
+
+```{r echo=TRUE,eval=FALSE}
+flights |> relocate(year:dep_time, .after = time_hour)
+flights |> relocate(starts_with("arr"), .before = dep_time)
+```
+
+## Ejercicios
+
+-   Compare `dep_time`, `sched_dep_time` y `dep_delay`. ¿Cómo esperarías que se relacionaran esos tres números?
+
+-   Piense en tantas formas como sea posible para seleccionar `dep_time`, `dep_delay`, `arr_time` y `arr_delay` del data `flights`.
+
+-   ¿Qué sucede si especifica el nombre de la misma variable varias veces en un `select()`?
+
+¿Qué hace la función `any_of()`? ¿Por qué podría ser útil junto con este vector? `variables <- c("year", "month", "day", "dep_delay", "arr_delay")`
+
+<!-- En R, la función any_of() de la librería dplyr se usa para seleccionar columnas de un data frame de manera segura. Su principal ventaja es que evita errores si alguno de los nombres de columna en el vector proporcionado no está presente en el data frame. -->
+
+-   ¿Te sorprende el resultado de ejecutar el siguiente código? ¿Cómo manejan los ayudantes de selección las mayúsculas y minúsculas de forma predeterminada? ¿Cómo puedes cambiar ese valor predeterminado? `flights |> select(contains("TIME"))`
+
+## Ejercicios (continuación)
+
+-   Cambie el nombre `air_time` a `air_time_min` para indicar las unidades de medida y muévalo al comienzo del marco de datos.
+
+-   ¿Por qué no funciona el siguiente código y qué significa el error?
+
+```{r echo=TRUE,eval=FALSE}
+flights |> select(tailnum) |> arrange(arr_delay)
+```
+
+## La tubería `The Pipe`
+
+-   Hemos mostrado ejemplos sencillos del uso del `pipe`, pero su verdadero poder surge cuando se combinan varias funciones.
+
+-   Por ejemplo, suponga que se quiere encontrar los vuelos mas rápidos al aeropuerto IAH de Houston: se requiere combinar `filter()`, `mutate()`, `select()` y `arrange()`
+
+```{r echo=TRUE,eval=FALSE}
+flights |>
+filter(dest == "IAH") |>
+mutate(speed = distance / air_time * 60) |>
+select(year:day, dep_time, carrier, flight, speed) |>
+arrange(desc(speed))
+```
+
+-   Aunque este proceso tiene cuatro pasos, es fácil de leer rápidamente porque las funciones aparecen al principio de cada línea: comenzar con los datos de los vuelos, luego filtrar, luego calcular (mutar), luego seleccionar y finalmente organizar.
+
+## La tubería `The Pipe` (cont)
+
+-   ¿Qué pasaría si no tuviéramos la tubería?
+
+-   Podríamos anidar cada llamada de función dentro de la llamada anterior:
+
+```{r echo=TRUE,eval=FALSE}
+arrange(
+  select(
+    mutate(
+      filter(flights, dest == "IAH"),
+    speed = distance / air_time * 60),
+  year:day, dep_time, carrier, flight, speed
+  ),
+desc(speed) 
+)
+```
+
+-   O podríamos utilizar un montón de objetos intermedios:
+
+## La tubería `The Pipe` (cont)
+
+```{r echo=TRUE,eval=FALSE}
+flights1<-filter(flights, dest == "IAH")
+flights2<-mutate(flights1, speed = distance / air_time * 60)
+flights3<-select(flights2,year:day,dep_time,carrier, flight,speed)
+arrange(flights3, desc(speed))
+```
+
+-   Si bien ambas formas tienen su tiempo y lugar, la tubería generalmente produce un código de análisis de datos que es más fácil de escribir y leer.
+
+## `Groups`
+
+-   Hasta ahora hemos aprendido sobre las funciones que trabajan con filas y columnas.
+
+-   `dplyr` se vuelve aún más potente cuando agrega la capacidad de trabajar con grupos.
+
+-   En esta sección, nos centraremos en las funciones más importantes: `group_by()`, `summarize()` y la familia de funciones `slice`.
+
+## `group_by()`
+
+Utilice `group_by()` para dividir su conjunto de datos en grupos significativos para su análisis:
+
+```{r echo=TRUE,eval=TRUE}
+flights |> group_by(month)
+```
+
+## `group_by()`
+
+-   `group_by()` no cambia los datos, pero la salida indica que está “agrupada por” mes (`Groups: month [12]`).
+
+-   Esto significa que las operaciones posteriores ahora funcionarán “por mes”.
+
+-   group_by() agrega esta característica agrupada (denominada clase) al marco de datos, lo que cambia el comportamiento de las funciones aplicadas posteriormente a los datos.
+
+## `summarize()`
+
+-   La operación agrupada más importante es un resumen, que, si se utiliza para calcular una única estadística de resumen, reduce el marco de datos para tener una única fila para cada grupo.
+
+-   En `dplyr`, esta operación se realiza mediante `summarize()`, como se muestra en el siguiente ejemplo, que calcula el retraso de salida promedio por mes:
+
+```{r echo=TRUE,eval=TRUE}
+flights |> group_by(month) |>
+summarize(avg_delay = mean(dep_delay))
+```
+
+## 
+
+-   Esto sucede porque algunos de los vuelos observados tenían datos faltantes en la columna `dep_delay`, por lo que cuando calculamos la media el resultado es `NA`.
+
+-   Le indicaremos a la función `mean()` que ignore todos los valores faltantes estableciendo el argumento `na.rm` en `TRUE`:
+
+```{r echo=TRUE,eval=TRUE}
+flights |> group_by(month) |>
+summarize(avg_delay = mean(dep_delay,na.rm = TRUE))
+```
+
+## Más de un resumen
+
+-   Puede crear cualquier cantidad de resúmenes en una sola llamada a summarize().
+
+-   Un resumen útil es `n()`, que devuelve el número de filas en cada grupo:
+
+```{r echo=TRUE,eval=TRUE}
+flights |> group_by(month) |>
+summarize(avg_delay = mean(dep_delay,na.rm = TRUE), 
+          n=n() )
+```
+
+¡Las medias y los conteos pueden llevarte a un camino sorprendentemente largo en la ciencia de datos!
+
+## Las funciones `slice_`
+
+Hay cinco funciones útiles que le permiten extraer filas específicas dentro de cada grupo:
+
+```{r echo=TRUE,eval=TRUE}
+df=flights |> group_by(month)
+```
+
+-   `slice_head`: Toma la primera fila de cada grupo.
+
+```{r echo=TRUE,eval=TRUE}
+df|>slice_head(n=1)
+```
+
+## `slice_tail`
+
+Toma la última fila de cada grupo.
+
+```{r echo=TRUE,eval=TRUE}
+df|>slice_tail(n=1)
+```
+
+## `slice_min`
+
+Toma la fila con el valor más pequeño de la columna `dep_delay`
+
+```{r echo=TRUE,eval=TRUE}
+df |> slice_min(dep_delay, n = 1) |> relocate(dep_delay)
+```
+
+## `slice_min`
+
+Toma la fila con el valor más pequeño de la columna `dep_delay`, sin empates.
+
+```{r echo=TRUE,eval=TRUE}
+df |> slice_min(dep_delay, n = 1, with_ties
+= FALSE) |> relocate(dep_delay)
+```
+
+## `slice_max`
+
+Toma la fila con el valor más grande de la columna `dep_delay`
+
+```{r echo=TRUE,eval=TRUE}
+df |> slice_max(dep_delay, n = 1) |> relocate(dep_delay)
+```
+
+## `slice_sample`
+
+Toma una fila aleatoria
+
+```{r echo=TRUE,eval=TRUE}
+df |> slice_sample(n = 1)
+```
+
+## `prop` en lugar de `n`
+
+Puede variar `n` para seleccionar más de una fila o, en lugar de `n =` , puede utilizar `prop = 0.1` para seleccionar, digamos, el 10% de las filas de cada grupo. Por ejemplo, el siguiente código busca los vuelos que sufren mayor retraso al llegar a cada destino:
+
+```{r echo=TRUE,eval=FALSE}
+flights |> group_by(dest) |>
+  slice_max(arr_delay, prop = 0.1) |> 
+  relocate(dest,arr_delay)
+```
+
+```{r echo=FALSE,eval=TRUE}
+flights |> group_by(dest) |> slice_max(arr_delay, prop = 0.1)|>relocate(dest,arr_delay) 
+```
+
+## Agrupación por múltiples variables
+
+Se puede crear grupos utilizando más de una variable. Por ejemplo, podríamos crear un grupo para cada fecha:
+
+```{r echo=TRUE,eval=TRUE}
+daily <- flights |> group_by(year, month, day)
+daily
+```
+
+## `summarize` un tibble agrupado por más de una variable.
+
+-   Cuando se resume un tibble agrupado por más de una variable, cada resumen separa el último grupo.
+
+-   Para que quede claro lo que está sucediendo, `dplyr` muestra un mensaje que te dice cómo puedes cambiar este comportamiento:
+
+-   Note que la salida siguiente está agrupada por año y mes
+
+```{r echo=TRUE,eval=TRUE}
+daily_flights<-daily|>summarize(n = n())
+daily_flights
+```
+
+## `summarize` un tibble agrupado por más de una variable.
+
+-   Si quiere mantener los mismos grupos del data agrupado original use la opción `.groups = "keep"` en `summarize`.
+
+```{r echo=TRUE,eval=TRUE}
+daily_flights<-daily|>summarize(n = n(), .groups = "keep" )
+daily_flights
+```
+
+## `summarize` un tibble agrupado por más de una variable.
+
+-   Para que el resultado no quede como un data agrupado use `.groups = "drop"`
+
+```{r echo=TRUE,eval=TRUE}
+daily_flights<-daily|>summarize(n = n(), .groups = "drop") 
+daily_flights
+```
+
+## Desagrupación
+
+-   Se puede eliminar la agrupación de un marco de datos con `ungroup():`
+
+```{r echo=TRUE,eval=TRUE}
+daily |> ungroup()
+```
+
+## `.by`
+
+`dplyr` proporciona el argumento `.by` para agrupar dentro de una sola operación:
+
+```{r echo=TRUE,eval=TRUE}
+flights |> summarize( delay = mean(dep_delay, na.rm = TRUE),
+                      n = n(), .by = month )
+```
+
+## `.by` (continuación)
+
+-   Si quieres agrupar por múltiples variables:
+
+```{r echo=TRUE,eval=TRUE}
+flights |> summarize( delay = mean(dep_delay, na.rm = TRUE),
+                      n = n(), .by = c(origin, dest) )
+```
+
+## Ejercicios
+
+-   ¿Qué aerolínea tiene los peores retrasos promedio?
+
+-   Encuentra los vuelos que sufren mayor retraso en la salida desde cada destino.
+
+-   ¿Cómo varían los retrasos a lo largo del día? Ilustre su respuesta con un gráfico.
+
+-   ¿Qué sucede si proporcionas un `n` negativo a `slice_min()`?
+
+-   Explica qué hace `count()` en términos de las funciones de `dplyr` que acabas de aprender. ¿Qué hace el argumento de ordenación del método `count()`?
+
+## Ejercicios (cont)
+
+-   Supongamos que tenemos el siguiente pequeño marco de datos:
+
+```{r echo=TRUE,eval=FALSE}
+df <- tibble( x = 1:5,
+y = c("a", "b", "a", "a", "b"),
+z = c("K", "K", "L", "L", "K") )
+```
+
+-   Escribe cómo crees que se verá el resultado; Luego verifica si estabas en lo correcto y describe qué hace `group_by()`.
+
+```{r echo=TRUE,eval=FALSE}
+df |> group_by(y)
+```
+
+-   Escribe cómo crees que se verá el resultado; Luego comprueba si eran correctos y describen lo que hace `arrange()`. Comente también en qué se diferencia del `group_by()` del punto anterior.
+
+```{r echo=TRUE,eval=FALSE}
+df |> arrange(y)
+```
+
+## Ejercicios (cont)
+
+-   Escribe cómo crees que se verá el resultado; Luego verifica si estabas en lo correcto y describe lo que hace el pipeline.
+
+```{r echo=TRUE,eval=FALSE}
+df |> group_by(y) |>
+summarize(mean_x = mean(x))
+```
+
+-   Escribe cómo crees que se verá el resultado; Luego verifica si estabas en lo correcto y describe lo que hace el pipeline. Luego comenta lo que dice el mensaje.
+
+```{r echo=TRUE,eval=FALSE}
+df |> group_by(y, z) |> summarize(mean_x = mean(x))
+```
+
+-   Escribe cómo crees que se verá el resultado; Luego verifica si estabas en lo correcto y describe lo que hace el pipeline. ¿En qué se diferencia el resultado del de el punto anterior?
+
+```{r echo=TRUE,eval=FALSE}
+df |> group_by(y, z) |>
+  summarize(mean_x = mean(x), .groups = "drop")
+```
+
+## Ejercicios (cont)
+
+-   Escribe cómo crees que se verán los resultados; Luego verifica si estabas en lo correcto y describe lo que hace cada `pipeline`. ¿En qué se diferencian los resultados de ambos `pipelines`?
+
+```{r echo=TRUE,eval=FALSE}
+df |>
+group_by(y, z) |>
+summarize(mean_x = mean(x))
+### 
+df |>
+group_by(y, z) |>
+mutate(mean_x = mean(x))
+
+```
+
+## Cálculo de cuántos NA's hay
+
+solución a la pregunta cuántos `NA` hay en una columna ?
+
+```{r echo=TRUE,eval=TRUE}
+flights |> group_by(month) |>
+  mutate(NoFalta=!is.na(dep_delay)) |>
+  summarize(avg_delay=mean(dep_delay,na.rm= 
+  TRUE) , CuantosHay=sum(NoFalta), n=n() )
+```
