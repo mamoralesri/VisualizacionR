@@ -42,7 +42,7 @@ library(ggplot2)
 ```{r echo=FALSE,out.width="90%",out.height="90%"}
 acuicultura=read.csv2("data/acuicultura.csv")
 # seleccionamos las columnas 
-oxigeno=subset(acuicultura, select=c('PISCINA','dia','OXIGESUP','OXIGEFON'))
+oxigeno=subset(acuicultura, select=c('PISCINA','dia','OXIGESUP','OXIGEFON')) 
 oxigenol=melt(oxigeno,id.vars=c("PISCINA","dia"))
 # cambiamos los nombres de columnas 
 colnames(oxigenol)=c('Piscina','dia','Sitio','Oxigeno') 
@@ -67,6 +67,28 @@ oxigenol$Piscina=factor(oxigenol$Piscina)
 ```{r echo=FALSE,out.width="90%",out.height="90%"}
 ggplot(oxigenol,aes(x=Piscina,y=Oxigeno,col=Sitio))+geom_boxplot() 
 ```
+
+## Solución 
+
+```{r}
+#| echo: true
+
+acuicultura=read.csv2("data/acuicultura.csv")
+# seleccionamos las columnas 
+oxigeno=subset(acuicultura, select=c('PISCINA','dia','OXIGESUP','OXIGEFON')) 
+oxigenol=melt(oxigeno,id.vars=c("PISCINA","dia"))
+# cambiamos los nombres de columnas 
+colnames(oxigenol)=c('Piscina','dia','Sitio','Oxigeno') 
+# convertimos sitio en un factor 
+oxigenol$Sitio=factor(oxigenol$Sitio,labels = c('Superf','Fondo'))
+#head(oxigenol)
+# piscina en un factor 
+oxigenol$Piscina=factor(oxigenol$Piscina) 
+#head(oxigenol)
+```
+
+
+
 
 ## Introducción
 
@@ -180,6 +202,9 @@ Las funciones más importantes de `dplyr`, que operan en las filas de un conjunt
 -   `filter()` permite mantener filas en función de los valores de las columnas.
     -   El primer argumento es el marco de datos.
     -   El segundo argumento y los subsiguientes son las condiciones que deben ser verdaderas para mantener la fila.
+    
+## `filter`, ejemplo 
+    
 -   Por ejemplo, podríamos encontrar todos los vuelos que salieron con más de 120 minutos (dos horas) de retraso
 
 ```{r echo=TRUE}
@@ -241,6 +266,8 @@ Enero1 <- flights |> filter(month == 1 & day == 1)
 
 -   Si proporciona más de un nombre de columna, cada columna adicional se utilizará para desempatar los valores de las columnas anteriores.
 
+## `arrange()` , ejemplo 
+
 -   Por ejemplo, el siguiente código ordena por la hora de salida, que se distribuye en cuatro columnas. Primero obtenemos los primeros años, luego, dentro de un año, los primeros meses, etc.
 
 ```{r echo=TRUE,eval=FALSE}
@@ -262,6 +289,9 @@ flights|>arrange(desc(dep_delay))
 -   Encuentra todas las filas únicas en un conjunto de datos, por lo que, en sentido técnico, opera principalmente en las filas.
 
 -   Sin embargo, la mayoría de las veces necesitarás la combinación específica de algunas variables, por lo que también puedes proporcionar nombres de columnas de manera opcional.
+
+## `distinct()` , ejemplo
+
 
 ```{r echo=TRUE,eval=FALSE}
 set.seed(1234)
@@ -310,6 +340,8 @@ d |> distinct(V1,V2,.keep_all = TRUE)
     -   Salida en verano (julio, agosto y septiembre)
     -   Llegó más de dos horas tarde, pero no se fue tarde.
     -   Tuvieron un retraso de al menos una hora, pero recuperaron más de 30 minutos en vuelo.
+    
+## Ejercicios II 
 
 -   Ordene los vuelos para encontrar los vuelos con mayores retrasos en la salida. Encuentra los vuelos que salieron más temprano en la mañana.
 
@@ -317,10 +349,12 @@ d |> distinct(V1,V2,.keep_all = TRUE)
 
 -   ¿Hubo un vuelo todos los días del año 2013?
 
-## Ejercicios II
+## Ejercicios III 
 
 -   ¿Qué vuelos recorrieron la mayor distancia? ¿Cuál recorrió la menor distancia?
--   ¿Importa en qué orden utilizaste filter() y organize() si estás usando ¿ambos? ¿Por qué/por qué no? Piense en los resultados y en cuánto trabajo tendrían que realizar las funciones.
+-   ¿Importa en qué orden utilizaste `filter()` y `organize()` si estás usando ¿ambos? ¿Por qué/por qué no? Piense en los resultados y en cuánto trabajo tendrían que realizar las funciones.
+
+# Operaciones sobre columnas 
 
 ## Columnas
 
@@ -328,8 +362,10 @@ Hay cuatro funciones importantes que afectan a las columnas sin cambiar las fila
 
 -   `mutate()` crea nuevas columnas que se derivan de las columnas existentes,
 -   `select()` cambia las columnas que están presentes,
--   `rename()` cambia los nombres de las columnas, y\
+-   `rename()` cambia los nombres de las columnas, y 
 -   `relocate()` cambia las posiciones de las columnas.
+
+
 
 ## `mutate()`
 
@@ -337,27 +373,25 @@ Hay cuatro funciones importantes que afectan a las columnas sin cambiar las fila
 -   Más adelante aprenderemos un amplio conjunto de funciones que se pueden usar para manipular diferentes tipos de variables.
 -   Por ahora, nos quedaremos con el álgebra básica, que nos permite calcular la ganancia, cuánto tiempo recuperó en el aire un vuelo retrasado y la velocidad en millas por hora:
 
-```{r echo=TRUE,eval=FALSE}
+
+## `mutate()`, ejemplo 
+
+```{r}
+#| echo: true 
+#| eval: true
+
 flights|>mutate(
 gain = dep_delay - arr_delay,
 speed = distance / air_time * 60
 )
 ```
 
-## 
-
-```{r echo=FALSE,eval=TRUE}
-flights|>mutate(
-gain = dep_delay - arr_delay,
-speed = distance / air_time * 60
-)
-```
 
 ## Dónde colocar las nuevas columnas?
 
 -   De forma predeterminada, `mutate()` agrega nuevas columnas en el lado derecho de su conjunto de datos, lo que dificulta ver el resultado.
 
--   Podemos usar el argumento .before para agregar las variables al lado izquierdo
+-   Podemos usar el argumento `.before` para agregar las variables al lado izquierdo
 
 ```{r echo=TRUE,eval=TRUE}
 flights|>mutate(
@@ -374,6 +408,8 @@ speed = distance / air_time * 60, .before = 1
 
 -   Tanto en `.before` como en `.after` puedes usar el nombre de la variable en lugar de una posición.
 
+## Uso de `.after`
+
 -   Por ejemplo, podríamos agregar las nuevas variables después de `day`:
 
 ```{r echo=TRUE,eval=FALSE}
@@ -382,10 +418,14 @@ gain = dep_delay - arr_delay,
 speed = distance / air_time * 60, .after=day ) 
 ```
 
+
 ## `mutate()` ¿qué columnas se conservan?
 
 -   Se puede controlar qué variables se conservan con el argumento `.keep` .
 -   Una opción particularmente útil para `.keep` es "used", que especifica que conservamos solo las columnas que estuvieron involucradas o fueron creadas en el paso `mutate()`.
+
+## ¿qué columnas se conservan? 
+
 -   Por ejemplo, la salida del siguiente código contendrá solo las variables `dep_delay`, `arr_delay`, `air_time`, `gain`, `hours` y `gain_per_hour`:
 
 ```{r echo=TRUE,eval=FALSE}
@@ -406,7 +446,7 @@ gain_per_hour = gain / hours,
 .keep = "used") 
 ```
 
-## Observación
+## Observación I 
 
 -   No hemos asignado el resultado del cálculo anterior a `flights`,
 
@@ -416,9 +456,16 @@ gain_per_hour = gain / hours,
 
 -   Es decir, sobrescribiendo el marco de datos original con muchas más variables, o a un nuevo objeto.
 
+
+
+## Observación II 
+
+
 -   A menudo, la respuesta correcta es un nuevo objeto que recibe un nombre informativo para indicar su contenido, por ejemplo, `delay_gain`,
 
 -   Pero también es posible que tenga buenas razones para sobrescribir `flights`.
+
+
 
 ## `select()`
 
@@ -426,17 +473,22 @@ gain_per_hour = gain / hours,
 
 -   `select()` le permite seleccionar rápidamente un subconjunto útil utilizando operaciones basadas en los nombres de las variables:
 
--   Seleccionar columnas por nombre:
+## Seleccionar columnas por nombre:
 
 ```{r echo=TRUE,eval=FALSE}
 flights |> select(year, month, day)
 ```
+
+
+## Seleccionar todas las colummnas entre ... 
 
 -   Seleccionar todas las columnas entre año y día (inclusive):
 
 ```{r echo=TRUE,eval=FALSE}
 flights |> select(year:day)
 ```
+
+## 
 
 -   Seleccionar todas las columnas excepto las de año a día (inclusive):
 
@@ -452,11 +504,17 @@ flights |> select(!year:day)
 flights|>select(where(is.character))
 ```
 
--   Seleccionar todas las columnas cuyos nombres comienzan con "d"
+## Seleccionar por nombre  
+
+- Seleccionar todas las columnas cuyos nombres comienzan con "d"
 
 ```{r echo=TRUE,eval=FALSE}
 flights|>select(starts_with("d"))
 ```
+
+
+## Seleccionar por nombre   
+
 
 -   Seleccionar todas las columnas cuyos nombres terminan en "time"
 
@@ -464,11 +522,15 @@ flights|>select(starts_with("d"))
 flights|>select(ends_with("time")) 
 ```
 
+## Seleccionar por nombre  
+
 -   Seleccionar todas las columnas cuyos nombres contienen "time"
 
 ```{r echo=TRUE,eval=FALSE}
 flights|>select(contains("time")) 
 ```
+
+## Seleccionar por nombre  
 
 -   Todas las columnas cuyos nombres coinciden con x1, x2 y x3
 
@@ -506,6 +568,8 @@ Utilice relocate() para mover las variables. Es posible que desees recopilar var
 ```{r echo=TRUE,eval=FALSE}
 flights |> relocate(time_hour, air_time)  
 ```
+
+## `relocate()` (cont) 
 
 También puedes especificar dónde colocarlos usando los argumentos `.before` y `.after`, tal como en `mutate()`:
 
@@ -552,6 +616,9 @@ select(year:day, dep_time, carrier, flight, speed) |>
 arrange(desc(speed))
 ```
 
+
+## La tubería `The Pipe` (cont)
+
 -   Aunque este proceso tiene cuatro pasos, es fácil de leer rápidamente porque las funciones aparecen al principio de cada línea: comenzar con los datos de los vuelos, luego filtrar, luego calcular (mutar), luego seleccionar y finalmente organizar.
 
 ## La tubería `The Pipe` (cont)
@@ -572,9 +639,11 @@ desc(speed)
 )
 ```
 
--   O podríamos utilizar un montón de objetos intermedios:
-
 ## La tubería `The Pipe` (cont)
+
+O podríamos utilizar un montón de objetos intermedios:
+
+
 
 ```{r echo=TRUE,eval=FALSE}
 flights1<-filter(flights, dest == "IAH")
@@ -584,6 +653,9 @@ arrange(flights3, desc(speed))
 ```
 
 -   Si bien ambas formas tienen su tiempo y lugar, la tubería generalmente produce un código de análisis de datos que es más fácil de escribir y leer.
+
+# Agrupamiento  
+
 
 ## `Groups`
 
@@ -607,7 +679,7 @@ flights |> group_by(month)
 
 -   Esto significa que las operaciones posteriores ahora funcionarán “por mes”.
 
--   group_by() agrega esta característica agrupada (denominada clase) al marco de datos, lo que cambia el comportamiento de las funciones aplicadas posteriormente a los datos.
+-   `group_by()` agrega esta característica agrupada (denominada clase) al marco de datos, lo que cambia el comportamiento de las funciones aplicadas posteriormente a los datos.
 
 ## `summarize()`
 
@@ -615,12 +687,14 @@ flights |> group_by(month)
 
 -   En `dplyr`, esta operación se realiza mediante `summarize()`, como se muestra en el siguiente ejemplo, que calcula el retraso de salida promedio por mes:
 
+## Retraso de salida promedio por mes.  
+
 ```{r echo=TRUE,eval=TRUE}
 flights |> group_by(month) |>
 summarize(avg_delay = mean(dep_delay))
 ```
 
-## 
+## Porqué los `NA` 
 
 -   Esto sucede porque algunos de los vuelos observados tenían datos faltantes en la columna `dep_delay`, por lo que cuando calculamos la media el resultado es `NA`.
 
@@ -633,7 +707,7 @@ summarize(avg_delay = mean(dep_delay,na.rm = TRUE))
 
 ## Más de un resumen
 
--   Puede crear cualquier cantidad de resúmenes en una sola llamada a summarize().
+-   Puede crear cualquier cantidad de resúmenes en una sola llamada a `summarize()`.
 
 -   Un resumen útil es `n()`, que devuelve el número de filas en cada grupo:
 
@@ -653,23 +727,26 @@ Hay cinco funciones útiles que le permiten extraer filas específicas dentro de
 df=flights |> group_by(month)
 ```
 
+
+## Primera fila de cada grupo 
+
 -   `slice_head`: Toma la primera fila de cada grupo.
 
 ```{r echo=TRUE,eval=TRUE}
 df|>slice_head(n=1)
 ```
 
-## `slice_tail`
+## última fila de cada grupo 
 
-Toma la última fila de cada grupo.
+`slice_tail` toma la última fila de cada grupo.
 
 ```{r echo=TRUE,eval=TRUE}
 df|>slice_tail(n=1)
 ```
 
-## `slice_min`
+## Fila con el valor más pequeño 
 
-Toma la fila con el valor más pequeño de la columna `dep_delay`
+`slice_min`  toma la fila con el valor más pequeño de la columna `dep_delay`
 
 ```{r echo=TRUE,eval=TRUE}
 df |> slice_min(dep_delay, n = 1) |> relocate(dep_delay)
@@ -684,15 +761,15 @@ df |> slice_min(dep_delay, n = 1, with_ties
 = FALSE) |> relocate(dep_delay)
 ```
 
-## `slice_max`
+## Fila con el valor más grande 
 
-Toma la fila con el valor más grande de la columna `dep_delay`
+`slice_max` toma la fila con el valor más grande de la columna `dep_delay`
 
 ```{r echo=TRUE,eval=TRUE}
 df |> slice_max(dep_delay, n = 1) |> relocate(dep_delay)
 ```
 
-## `slice_sample`
+##  `slice_sample`
 
 Toma una fila aleatoria
 
