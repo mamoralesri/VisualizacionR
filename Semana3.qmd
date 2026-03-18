@@ -393,7 +393,9 @@ speed = distance / air_time * 60
 
 -   Podemos usar el argumento `.before` para agregar las variables al lado izquierdo
 
-```{r echo=TRUE,eval=TRUE}
+```{r} 
+#| echo: true
+#| output-location: fragment 
 flights|>mutate(
 gain = dep_delay - arr_delay,
 speed = distance / air_time * 60, .before = 1
@@ -412,7 +414,10 @@ speed = distance / air_time * 60, .before = 1
 
 -   Por ejemplo, podríamos agregar las nuevas variables después de `day`:
 
-```{r echo=TRUE,eval=FALSE}
+```{r}
+#| echo: true
+#| output-location: fragment 
+
 flights|>mutate(
 gain = dep_delay - arr_delay,
 speed = distance / air_time * 60, .after=day ) 
@@ -428,7 +433,12 @@ speed = distance / air_time * 60, .after=day )
 
 -   Por ejemplo, la salida del siguiente código contendrá solo las variables `dep_delay`, `arr_delay`, `air_time`, `gain`, `hours` y `gain_per_hour`:
 
-```{r echo=TRUE,eval=FALSE}
+```{r}
+#| echo: true
+#| eval: false 
+#| output-location: fragment 
+
+
 flights |> mutate(
 gain = dep_delay - arr_delay,
 hours = air_time / 60,
@@ -438,7 +448,12 @@ gain_per_hour = gain / hours,
 
 ## `mutate()` ¿qué columnas se conservan?
 
-```{r echo=FALSE,eval=TRUE}
+```{r}
+#| echo: false 
+#| eval: true 
+#| output-location: fragment
+
+
 flights |> mutate(
 gain = dep_delay - arr_delay,
 hours = air_time / 60,
@@ -475,7 +490,12 @@ gain_per_hour = gain / hours,
 
 ## Seleccionar columnas por nombre:
 
-```{r echo=TRUE,eval=FALSE}
+```{r}
+#| echo: true
+#| eval: false
+#| output-location: fragment
+
+
 flights |> select(year, month, day)
 ```
 
@@ -484,7 +504,12 @@ flights |> select(year, month, day)
 
 -   Seleccionar todas las columnas entre año y día (inclusive):
 
-```{r echo=TRUE,eval=FALSE}
+```{r}
+#| echo: true
+#| eval: false
+#| output-location: fragment
+
+
 flights |> select(year:day)
 ```
 
@@ -492,7 +517,12 @@ flights |> select(year:day)
 
 -   Seleccionar todas las columnas excepto las de año a día (inclusive):
 
-```{r echo=TRUE,eval=FALSE}
+```{r}
+#| echo: true
+#| eval: false
+#| output-location: fragment
+
+
 flights |> select(!year:day)
 ```
 
@@ -500,7 +530,12 @@ flights |> select(!year:day)
 
 -   Seleccionar todas las columnas que sean de caracteres:
 
-```{r echo=TRUE,eval=FALSE}
+```{r}
+#| echo: true
+#| eval: false
+#| output-location: fragment
+
+
 flights|>select(where(is.character))
 ```
 
@@ -508,7 +543,12 @@ flights|>select(where(is.character))
 
 - Seleccionar todas las columnas cuyos nombres comienzan con "d"
 
-```{r echo=TRUE,eval=FALSE}
+```{r}
+#| echo: true
+#| eval: false
+#| output-location: fragment
+
+
 flights|>select(starts_with("d"))
 ```
 
@@ -518,7 +558,11 @@ flights|>select(starts_with("d"))
 
 -   Seleccionar todas las columnas cuyos nombres terminan en "time"
 
-```{r echo=TRUE,eval=FALSE}
+```{r}
+#| echo: true
+#| eval: false
+#| output-location: fragment
+
 flights|>select(ends_with("time")) 
 ```
 
@@ -526,7 +570,11 @@ flights|>select(ends_with("time"))
 
 -   Seleccionar todas las columnas cuyos nombres contienen "time"
 
-```{r echo=TRUE,eval=FALSE}
+```{r}
+#| echo: true
+#| eval: false
+#| output-location: fragment
+
 flights|>select(contains("time")) 
 ```
 
@@ -534,7 +582,11 @@ flights|>select(contains("time"))
 
 -   Todas las columnas cuyos nombres coinciden con x1, x2 y x3
 
-```{r echo=TRUE,eval=FALSE}
+```{r}
+#| echo: true
+#| eval: false
+#| output-location: fragment
+
 flights|>select(num_range("x",1:3))  
 ```
 
@@ -543,7 +595,11 @@ flights|>select(num_range("x",1:3))
 -   Puedes cambiar el nombre de las variables a medida que las seleccionas utilizando `=`.
 -   El nuevo nombre aparece en el lado izquierdo del `=`, y la variable antigua aparece en el lado derecho
 
-```{r echo=TRUE,eval=FALSE}
+```{r}
+#| echo: true
+#| eval: false
+#| output-location: fragment
+
 flights |> select(tail_num = tailnum)
 ```
 
@@ -563,7 +619,7 @@ flights |> rename(tail_num = tailnum,Anio=year)
 
 ## `relocate()`
 
-Utilice relocate() para mover las variables. Es posible que desees recopilar variables relacionadas o mover las variables importantes al frente. De forma predeterminada, relocate() mueve las variables al frente:
+Utilice `relocate()` para mover las variables. Es posible que desees recopilar variables relacionadas o mover las variables importantes al frente. De forma predeterminada, `relocate()` mueve las variables al frente:
 
 ```{r echo=TRUE,eval=FALSE}
 flights |> relocate(time_hour, air_time)  
