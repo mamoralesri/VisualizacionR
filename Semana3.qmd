@@ -862,12 +862,16 @@ daily
 
 -   Para que quede claro lo que está sucediendo, `dplyr` muestra un mensaje que te dice cómo puedes cambiar este comportamiento:
 
+
+## `summarize` un tibble agrupado por más de una variable. 
+
 -   Note que la salida siguiente está agrupada por año y mes
 
 ```{r echo=TRUE,eval=TRUE}
 daily_flights<-daily|>summarize(n = n())
 daily_flights
 ```
+
 
 ## `summarize` un tibble agrupado por más de una variable.
 
@@ -903,6 +907,15 @@ daily |> ungroup()
 flights |> summarize( delay = mean(dep_delay, na.rm = TRUE),
                       n = n(), .by = month )
 ```
+
+## Equivalente a: 
+
+
+```{r echo=TRUE,eval=TRUE}
+flights |> group_by(month)|>summarize( delay = mean(dep_delay, na.rm = TRUE), n = n())
+```
+
+
 
 ## `.by` (continuación)
 
@@ -994,3 +1007,21 @@ flights |> group_by(month) |>
   summarize(avg_delay=mean(dep_delay,na.rm= 
   TRUE) , CuantosHay=sum(NoFalta), n=n() )
 ```
+
+
+## Cálculo de cuántos NA's hay
+
+solución a la pregunta cuántos `NA` hay en una columna ?
+
+```{r echo=TRUE,eval=TRUE}
+flights |> group_by(month) |>
+  mutate(NoFalta=!is.na(dep_delay)) |>
+  summarize(avg_delay=mean(dep_delay,na.rm= 
+  TRUE) , CuantosHay=sum(NoFalta), n=n() )|>mutate(NAs=n-CuantosHay) 
+```
+
+
+
+
+
+

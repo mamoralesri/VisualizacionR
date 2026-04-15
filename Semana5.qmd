@@ -1,0 +1,569 @@
+---
+title: "Visualización de datos en R"
+subtitle: "Lectura de datos desde archivos"
+date: today
+date-format: "DD/MM/YYYY"
+author: 
+  - name: Mario Morales
+    affiliations:
+      - name: Universidad de Córdoba, Montería
+execute:
+  fig-width: 6
+  fig-height: 4
+format: 
+  revealjs: 
+    theme: "moon"
+    highlight: "tango"
+    center: true
+    transition: fade
+    lang: es
+    code-fold: true
+    scrollable: true
+  beamer:
+    theme: "CambridgeUS"
+    slide-level: 2
+    keep-tex: false # Cambiado a false para evitar basura de archivos temporales
+    fonttheme: "professionalfonts"
+toc: true
+toc-depth: 1 # <--- ¡CLAVE! Solo nivel 1 para que quepa en la pantalla
+toc-title: "Contenido"
+editor: source
+---
+
+```{r echo=FALSE}
+knitr::opts_chunk$set(out.width="90%",out.height="90%")
+
+setwd("~/Documents/Cursos/VisualizacionConR")
+
+library(reshape)
+library(ggplot2)
+library(tidyverse) 
+```
+
+# Lectura de archivos de datos
+
+## Introducción
+
+-   En algún momento querrás aplicar lo aprendido hasta ahora a tus propios datos.
+
+-   Aprenderá los conceptos básicos de lectura de archivos de datos en R.
+
+-   Nos centraremos en la lectura de archivos rectangulares de texto simple. Daremos consejos prácticos para
+
+    -   Manejar características como nombres de columnas
+    -   Tipos y datos faltantes.
+    -   Leer datos de varios archivos a la vez
+    -   Escribir datos desde R a un archivo
+    -   Cómo crear manualmente marcos de datos en R.
+
+<!--# Importación  de datos  -->
+
+## Lectura de datos de un archivo
+
+Nos centraremos en el tipo de archivo de datos rectangular más común: `CSV`, “valores separados por comas”. Así es como se ve un archivo CSV simple.
+
+```{r echo=TRUE , eval=FALSE}
+"","Pr","Out","Sat","Ef 1","Ef 2","Ef 3","Ef 4","Ef 5"
+"1",1,19,4,1,3,3,3,1
+"2",1,21,3,2,2,3,1,2
+"3",1,20,1,1,2,2,3,2
+"4",1,20,3,1,2,3,5, 
+"5",1,24,3,2,3,4,2,4
+"6",2,26,2,3,2,1,3,3
+"7",2,26,3,2,4,3,4,3
+"8",2,25,2,2,2,1,3,3
+"9",2,25,3,3,1,3,3,one
+"10",2,30,3,4,1,3,1,9
+```
+
+## Archivo `CSV`
+
+-   La primera fila, comúnmente llamada fila de encabezado, proporciona los nombres de las columnas
+
+-   Las siguientes seis filas proporcionan los datos.
+
+-   Las columnas están separadas, es decir delimitadas, por comas.
+
+-   Podemos leer este archivo en R usando `read_csv()`.
+
+-   El primer argumento es el más importante: la ruta al archivo.
+
+## Archivo `CSV` (II)
+
+-   Puedes pensar en la ruta como la dirección donde se encuentra el archivo
+
+-   El archivo se llama `example_data.csv` y se encuentra en la carpeta `datos`.
+
+## Lectura de un archivo `CSV`
+
+```{r echo=TRUE,eval=TRUE}
+library(tidyverse) 
+example <- read_csv("datos/example_data.csv")
+example
+```
+
+## Lectura de un archivo `CSV`
+
+El código anterior funcionará si tienes el archivo `example_data.csv` en la carpeta de `datos` en el directorio de trabajo.
+
+-   `read_csv()` imprime un mensaje que indica:
+    -   La cantidad de filas y columnas de datos,
+    -   El delimitador que se utilizó
+    -   Las especificaciones de las columnas (nombres de las columnas organizados por el tipo de datos que contiene la columna).
+ 
+## Lectura de un archivo `CSV`   
+    
+- También imprime información sobre cómo recuperar la especificación completa de la columna
+
+- Cómo silenciar el mensaje.
+
+# Consejos prácticos
+
+## Tratamiento de NA's
+
+-   Una vez que lee los datos, el primer paso generalmente implica transformarlos de alguna manera para que sea más fácil trabajar con ellos en el resto del análisis.
+
+-   Echemos otro vistazo a los datos de ejemplo con eso en mente:
+
+    -   En la columna `Sat` hay un numero y luego la cadena de caracteres `N/A`, que debería haber sido un `NA` real que `R` reconocerá como "no disponible".
+    -   Esto es algo que podemos abordar utilizando el argumento `na`.
+    
+## Tratamiento de NA's
+
+-   De forma predeterminada, `read_csv()` reconoce solo cadenas vacías `("")` en este conjunto de datos como `NA`;
+-   Queremos que también reconozca la cadena de caracteres `N/A`
+
+## Tratamiento de NA's
+
+```{r echo=TRUE,eval=TRUE}
+example <- read_csv("datos/example_data.csv",na=c("N/A","")) 
+example
+```
+
+## Nombres de variables
+
+-   Note que las columnas de `Ef 1` a `Ef 5` están rodeadas por comillas invertidas.
+
+-   Esto se debe a que contienen espacios, lo que rompe las reglas habituales de `R` para los nombres de variables;
+
+-   Son nombres *no sintácticos*.
+
+-   Para hacer referencia a estas variables, es necesario rodearlas con comillas invertidas.
+
+## Nombres de variables
+
+```{r echo=TRUE,eval=TRUE}
+example |> rename( x1 = `...1`,
+                  Ef_1= `Ef 1`,
+                  Ef_2= `Ef 2`,
+                  Ef_3= `Ef 3`, 
+                  Ef_4= `Ef 4`, 
+                  Ef_5= `Ef 5`)
+```
+
+## Nombres de variables
+
+Un enfoque alternativo es usar `janitor::clean_names()` para usar algunas heurísticas para convertirlos a todos a la vez.
+
+```{r echo=TRUE,eval=TRUE}
+example |> janitor::clean_names()
+```
+
+## Quitar una variable
+
+Quitar la columna `x1` ya que esta en realidad corresponde a los nombres (o números) de las filas.
+
+```{r echo=TRUE,eval=TRUE}
+example|>janitor::clean_names()|> select(-x1) 
+```
+
+## Convertir una columna a factor
+
+-   Otra tarea común después de leer datos es considerar los tipos de variables.
+-   Por ejemplo, `pr` (programa) es una variable categórica con dos categorías que en R debería representarse como un factor
+
+```{r echo=TRUE,eval=TRUE}
+example |> janitor::clean_names()|> select(-x1) |>
+  mutate(pr= factor(pr,labels = c('pr1','pr2'))) 
+```
+
+## Tratamiento de mezclas de numero y texto
+
+-   Antes de analizar estos datos, debemos arreglar la columna `ef_5`
+
+-   `ef_5` es una variable de carácter porque una de las observaciones se escribe como `one` en lugar del número 1.
+
+```{r echo=TRUE,eval=TRUE}
+example |> janitor::clean_names() |>
+  mutate( pr=factor(pr,labels=c('pr1','pr2')),
+          ef_5=parse_number( if_else(ef_5=="one","1",ef_5)))
+```
+
+# Otros argumentos de `read_csv`
+
+## Cadenas de texto con formato `CSV` {.fragile}
+
+-   Hay un par de argumentos importantes más que debemos mencionar
+
+-   Para eso usaremos datos de `juguete`
+
+    ```{r echo=TRUE,eval=TRUE}
+    read_csv(
+    "a,b,c
+    1,2,3
+    4,5,6"
+    )
+    ```
+
+## Otros argumentos de `read_csv`
+
+-   Generalmente, `read_csv()` utiliza la primera línea de los datos para los nombres de las columnas
+
+-   No es raro que se incluyan algunas líneas de metadatos en la parte superior del archivo.
+
+-   Puede utilizar `skip = n` para omitir las primeras `n` líneas
+
+-   También puede o utilizar `comment = "#"` para eliminar todas las líneas que comiencen con, por ejemplo, `#`
+
+## `skip=n`
+
+```{r echo=TRUE,eval=TRUE}
+read_csv(
+"La primera fila de metadatos
+La segunda fila de 
+x,y,z
+1,2,3
+4,5,6",
+skip = 2
+)
+```
+
+## `comment = "#"`
+
+```{r echo=TRUE,eval=TRUE}
+read_csv(
+"# Un comentario que deseo ignorar 
+ # Otro comentario  
+x,y,z
+1,2,3
+4,5,6",
+comment = "#"
+)
+```
+
+## `col_names` {.fragile}
+
+-   Es posible que los datos no tengan nombres de columnas.
+
+-   Puede usar `col_names = FALSE` para indicarle a `read_csv()` que no trate la primera fila como encabezado
+
+    ```{r echo=TRUE,eval=TRUE}
+      read_csv(
+      "1,2,3
+      4,5,6",
+      col_names=FALSE
+      )
+    ```
+
+## `col_names` {.fragile}
+
+- Note que `read_csv()` coloca `X_1`, `X_2`, `...` como nombres de columnas.  
+
+-   Alternativamente, puede pasar a `col_names` un vector de caracteres, que se utilizará como nombres de columnas:
+
+    ```{r echo=TRUE,eval=TRUE}
+    read_csv(
+    "1,2,3
+    4,5,6",
+    col_names=c('x','y','z')  
+    )
+    ```
+
+# Otros tipos de archivos
+
+## Otros tipos de archivos
+
+Una vez que domine `read_csv()`, usar otras funciones `read_` (lectoras) es sencillo; solo es cuestión de saber qué función usar.
+
+-   `read_csv2()`: Lee archivos separados por punto y coma. Estos archivos usan `;` en lugar de `,` para separar los campos y son comunes en países que usan `,` como separador decimal.
+
+-   `read_tsv()`: Lee archivos delimitados por tabulaciones.
+
+-   `read_delim()`: Lee archivos con cualquier delimitador e intenta adivinar automáticamente el delimitador si no se especifica.
+
+-   `read_fwf()`: Lee archivos de ancho fijo. se puede especificar los campos por su ancho con `fwf_widths()` o por su posición con `fwf_positions()`.
+
+## Otros tipos de archivos
+
+-   `read_table()`: Lee una variación común de archivos de ancho fijo donde las columnas están separadas por espacios en blanco.
+
+-   `read_log()` : Lee archivos de registro de estilo Apache.
+
+## Ejercicios {.fragile}
+
+-   ¿Qué función usarías para leer un archivo donde los campos estuvieran separados por `|`?
+
+-   Además de `file`, `skip` y `comment`, ¿qué otros argumentos tienen en común `read_csv()` y `read_tsv()`?
+
+-   ¿Cuáles son los argumentos más importantes para `read_fwf()`?
+
+-   A veces, las cadenas de un archivo CSV contienen comas. Para evitar problemas, deben ir entre comillas, como " o '. Por defecto, `read_csv()` asume que las comillas serán ". 
+
+
+## 
+
+-   Para leer el siguiente texto en un marco de datos, ¿qué argumento de `read_csv()` debe especificar?
+
+    ```{r echo=TRUE,eval=FALSE}
+    "x,y\n1,'a,b'"
+    ```
+
+
+
+-   Identifica el problema con cada uno de los siguientes archivos CSV en línea. ¿Qué sucede al ejecutar el código?
+
+    ```{r echo=TRUE,eval=FALSE}
+    read_csv("a,b\n1,2,3\n4,5,6")
+    read_csv("a,b,c\n1,2\n1,2,3,4")
+    read_csv("a,b\n\"1")
+    read_csv("a,b\n1,2\na,b")
+    read_csv("a;b\n1;3")
+    ```
+
+## Ejercicios {.fragile}
+
+-   Practique la referencia a nombres no sintácticos en el siguiente marco de datos:
+
+    -   Extraiga la variable llamada 1.
+    -   Dibuje un diagrama de dispersión de 1 versus 2.
+    -   Cree una nueva columna llamada 3, que es 2 dividido entre 1.
+    -   Renombre las columnas como uno, dos y tres.
+
+    ```{r echo=TRUE,eval=FALSE}
+    annoying <- tibble(
+      `1` = 1:10,
+      `2` = `1` * 2 + rnorm(length(`1`))
+    )
+    ```
+
+
+# Control de tipos de columnas
+
+## Control de tipos de columnas
+
+-   Un archivo CSV no contiene información sobre el tipo de cada variable
+
+-   Así que `readr` intentará adivinar el tipo. Estudiaremos:
+
+    -   cómo funciona el proceso de adivinación,
+    -   cómo resolver algunos problemas comunes que provocan fallos
+    -   cómo proporcionar los tipos de columna usted mismo.
+    -   daremos algunas estrategias generales útiles si `readr` presenta un fallo catastrófico y necesita comprender mejor la estructura de su archivo.
+
+## Adivinando los tipos de columnas 
+
+Para cada columna, extrae los valores de 1000 filas distribuidas uniformemente desde la primera hasta la última, ignorando los valores faltantes. A continuación, resuelve las siguientes preguntas:
+
+-   ¿Contiene solo F, T, FALSE o TRUE (sin distinguir entre mayúsculas y minúsculas)? De ser así, es una columna lógica.
+-   ¿Contiene solo números (p. ej., 1, -4,5, 5e6, Inf)? De ser así, es numérica.
+-   ¿Cumple con el estándar ISO8601? De ser así, es una fecha o una fecha-hora.
+
+## Adivinando los tipos de columnas {.fragile}
+
+-   De lo contrario, debe ser una columna de caracteres.
+
+### Ejemplo    
+
+Puede ver ese comportamiento en acción en este ejemplo sencillo:
+
+```{r echo=TRUE,eval=TRUE}
+  read_csv("
+logical,numeric,date,string
+TRUE,1,2021-01-15,abc
+false,4.5,2021-02-15,def
+T,Inf,2021-02-16,ghi
+")
+```
+
+
+## Cuidado
+
+Esta heurística funciona bien si tienes un conjunto de datos limpio, pero en la vida real encontrarás una selección de fallas extrañas e interesantes.
+
+## Valores faltantes, tipos de columnas y problemas
+
+-   La causa más común de fallo en la detección de columnas es que una columna contiene valores inesperados y se obtiene una columna de caracteres en lugar de un tipo más específico.
+
+-   Una de las causas más comunes es la falta de un valor, registrado con un valor distinto del `NA` que `readr` espera.
+
+-   Tomemos como ejemplo este sencillo archivo CSV de una sola columna:
+
+## Ejemplo
+
+```{r echo=TRUE,eval=TRUE}
+ simple_csv <- "
+x
+10
+.
+20
+30" 
+```
+
+Si lo leemos sin ningún argumento adicional, `x` se lee como una columna de caracteres:
+
+```{r echo=TRUE,eval=TRUE}
+read_csv(simple_csv) 
+```
+
+## Cómo solucionarlo?
+
+-   En este pequeño caso, se puede ver fácilmente el valor faltante.
+
+-   ¿Qué ocurre si hay miles de filas con solo unos pocos valores faltantes representados por `.`'s  dispersos entre ellas?
+
+-   Una solución es indicar a `readr` que `x` es una columna numérica y luego ver dónde falla.
+
+-   Esto se puede hacer con el argumento `col_types`, que toma una lista con nombre cuyos nombres coinciden con los de las columnas en el archivo `CSV`
+
+## Informando el tipo de columna
+
+```{r echo=TRUE,eval=TRUE}
+df <- read_csv(
+simple_csv,
+col_types = list(x = col_double())
+)
+```
+
+Ahora `read_csv()` informa que hubo un problema y nos dice que podemos encontrar más información con `problems()`
+
+```{r echo=TRUE,eval=TRUE}
+problems(df)
+```
+
+Esto sugiere que este conjunto de datos usa `.` para los valores faltantes.
+
+## Solución `na = "."`
+
+Entonces, establecemos `na = "."`, y la suposición automática funciona correctamente, obteniendo la columna numérica deseada.
+
+```{r echo=TRUE,eval=TRUE}
+read_csv(simple_csv,na = ".")
+```
+
+## Tipos de columnas
+
+`readr` proporciona un total de nueve tipos de columnas:
+
+-   `col_logical()` y `col_double()` leen números lógicos y reales.
+
+-   `col_integer()` lee enteros.
+
+-   `col_character()` lee cadenas.
+
+-   `col_factor()`, `col_date()` y `col_datetime()` crean factores, fechas y fechas y horas, respectivamente;
+
+-   `col_number()` es un analizador numérico permisivo que ignorará los componentes no numéricos y es particularmente útil para las monedas.
+
+## Tipos de columnas
+
+-   `col_skip()` omite una columna para que no se incluya en el resultado, lo que puede ser útil para acelerar la lectura de los datos si tiene un archivo `CSV` grande y desea utilizar solo algunas de las columnas.
+
+## Anular predeterminado
+
+También es posible anular detección predeterminada del tipo de dato, cambiando de `list()` a `cols()` y especificando `.default`:
+
+```{r echo=TRUE,eval=TRUE}
+df2<- "
+x,y,z
+1,2,3"
+read_csv(df2, col_types = cols(.default = col_character())
+)
+```
+
+## Leer solo las columnas que especifique
+
+Otra herramienta útil es `cols_only()`, que leerá únicamente las columnas que usted especifique:
+
+```{r echo=TRUE,eval=TRUE}
+read_csv(
+df2,col_types = cols_only(x = col_character())
+)
+```
+
+# Lectura de datos de varios archivos
+
+## Lectura de datos de varios archivos
+
+-   A veces, los datos se dividen en varios archivos en lugar de estar en uno solo.
+-   Por ejemplo, podrías tener datos de ventas de varios meses, con los datos de cada mes en un archivo separado:
+    -   `01-sales.csv` para enero,
+    -   `02-sales.csv` para febrero y
+    -   `03-sales.csv` para marzo.
+-   Con `read_csv()` puedes leer estos datos a la vez y apilarlos en un único marco de datos.
+
+## Lectura
+
+```{r echo=TRUE,eval=TRUE}
+ventas <- c("datos/01-sales.csv",
+            "datos/02-sales.csv", 
+            "datos/03-sales.csv")
+ventas_data=read_csv(ventas, id = "file")
+ventas_data
+```
+
+## La columna `file`
+
+-   El argumento `id` añade una nueva columna llamada `file` al marco de datos resultante, que identifica el archivo del que provienen los datos.
+
+-   Esto es especialmente útil cuando los archivos que se leen no tienen una columna de identificación que permita rastrear las observaciones hasta sus fuentes originales.
+
+-   Si tiene muchos archivos que desea leer, puede resultar complicado escribir sus nombres como una lista. En su lugar, puede usar la función `list.files()` para encontrar los archivos automáticamente mediante la búsqueda de un patrón en los nombres de archivo.
+
+## `list.files`
+
+```{r echo=TRUE,eval=TRUE}
+ventas <- list.files("datos", pattern = "sales\\.csv$",
+                     full.names = TRUE)  
+ventas
+```
+
+# Escribir datos en un archivo
+
+## `write_csv()`
+
+-   `readr` también incluye dos funciones útiles para escribir datos en el disco: write_csv() y write_tsv().
+
+-   Los argumentos más importantes de estas funciones son `x` (el marco de datos que se guardará) y `file` (la ubicación donde se guardará).
+
+-   También puedes especificar cómo se escriben los valores faltantes con `na`, así como si deseas añadir los datos a un archivo existente.
+
+## `write_csv()`
+
+```{r echo=TRUE,eval=FALSE}
+write_csv(ventas_data, "ventas.csv")
+```
+
+-   Cuando se configura una variable como factor, por ejemplo, esta información se pierde al guardar el archivo como `csv` y volver a leer nuevamente, ya que se lee de nuevo desde un archivo de texto sin formato.
+
+## `write_rds()`
+
+`write_rds()` almacena los datos en el formato binario personalizado de R, llamado `RDS`. Esto significa que al recargar el objeto, con `read_rds()`, se carga exactamente el mismo objeto de R que se almacenó.
+
+```{r echo=TRUE,eval=FALSE}
+# para escribir
+write_rds(ventas_data, "ventas.rds")
+# para leer 
+read_rds("ventas.rds")
+```
+
+## Archivos parquet
+
+El paquete `arrow` le permite leer y escribir archivos `parquet`, un formato de archivo binario rápido que se puede compartir entre lenguajes de programación.
+
+```{r echo=TRUE,eval=FALSE}
+library(arrow)
+write_parquet(ventas_data, "ventas.parquet")
+read_parquet("ventas.parquet")
+```
+
+`parquet` tiende a ser mucho más rápido que `RDS` y se puede utilizar fuera de R, pero requiere el paquete `arrow`.

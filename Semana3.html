@@ -207,7 +207,7 @@ Mario Morales
     </div>
 </div>
 
-  <p class="date">18/03/2026</p>
+  <p class="date">29/03/2026</p>
 </section><section id="TOC">
 <nav role="doc-toc"> 
 <h2 id="toc-title">Contenido</h2>
@@ -1587,7 +1587,12 @@ $ time_hour      &lt;dttm&gt; 2013-01-01 05:00:00, 2013-01-01 05:00:00, 2013-01-
 <ul>
 <li><p>Cuando se resume un tibble agrupado por más de una variable, cada resumen separa el último grupo.</p></li>
 <li><p>Para que quede claro lo que está sucediendo, <code>dplyr</code> muestra un mensaje que te dice cómo puedes cambiar este comportamiento:</p></li>
-<li><p>Note que la salida siguiente está agrupada por año y mes</p></li>
+</ul>
+</section>
+<section id="summarize-un-tibble-agrupado-por-más-de-una-variable.-1" class="slide level2 center">
+<h2><code>summarize</code> un tibble agrupado por más de una variable.</h2>
+<ul>
+<li>Note que la salida siguiente está agrupada por año y mes</li>
 </ul>
 <div class="cell">
 <details class="code-fold">
@@ -1614,7 +1619,7 @@ $ time_hour      &lt;dttm&gt; 2013-01-01 05:00:00, 2013-01-01 05:00:00, 2013-01-
 </div>
 </div>
 </section>
-<section id="summarize-un-tibble-agrupado-por-más-de-una-variable.-1" class="slide level2 center">
+<section id="summarize-un-tibble-agrupado-por-más-de-una-variable.-2" class="slide level2 center">
 <h2><code>summarize</code> un tibble agrupado por más de una variable.</h2>
 <ul>
 <li>Si quiere mantener los mismos grupos del data agrupado original use la opción <code>.groups = "keep"</code> en <code>summarize</code>.</li>
@@ -1644,7 +1649,7 @@ $ time_hour      &lt;dttm&gt; 2013-01-01 05:00:00, 2013-01-01 05:00:00, 2013-01-
 </div>
 </div>
 </section>
-<section id="summarize-un-tibble-agrupado-por-más-de-una-variable.-2" class="slide level2 center">
+<section id="summarize-un-tibble-agrupado-por-más-de-una-variable.-3" class="slide level2 center">
 <h2><code>summarize</code> un tibble agrupado por más de una variable.</h2>
 <ul>
 <li>Para que el resultado no quede como un data agrupado use <code>.groups = "drop"</code></li>
@@ -1732,6 +1737,32 @@ $ time_hour      &lt;dttm&gt; 2013-01-01 05:00:00, 2013-01-01 05:00:00, 2013-01-
 </div>
 </div>
 </section>
+<section id="equivalente-a" class="slide level2 center">
+<h2>Equivalente a:</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb83"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href=""></a>flights <span class="sc">|&gt;</span> <span class="fu">group_by</span>(month)<span class="sc">|&gt;</span><span class="fu">summarize</span>( <span class="at">delay =</span> <span class="fu">mean</span>(dep_delay, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">n =</span> <span class="fu">n</span>())</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 12 × 3
+   month delay     n
+   &lt;int&gt; &lt;dbl&gt; &lt;int&gt;
+ 1     1 10.0  27004
+ 2     2 10.8  24951
+ 3     3 13.2  28834
+ 4     4 13.9  28330
+ 5     5 13.0  28796
+ 6     6 20.8  28243
+ 7     7 21.7  29425
+ 8     8 12.6  29327
+ 9     9  6.72 27574
+10    10  6.24 28889
+11    11  5.44 27268
+12    12 16.6  28135</code></pre>
+</div>
+</div>
+</section>
 <section id="by-continuación" class="slide level2 center">
 <h2><code>.by</code> (continuación)</h2>
 <ul>
@@ -1740,8 +1771,8 @@ $ time_hour      &lt;dttm&gt; 2013-01-01 05:00:00, 2013-01-01 05:00:00, 2013-01-
 <div class="cell">
 <details class="code-fold">
 <summary>Código</summary>
-<div class="sourceCode cell-code" id="cb83"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href=""></a>flights <span class="sc">|&gt;</span> <span class="fu">summarize</span>( <span class="at">delay =</span> <span class="fu">mean</span>(dep_delay, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb83-2"><a href=""></a>                      <span class="at">n =</span> <span class="fu">n</span>(), <span class="at">.by =</span> <span class="fu">c</span>(origin, dest) )</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb85"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href=""></a>flights <span class="sc">|&gt;</span> <span class="fu">summarize</span>( <span class="at">delay =</span> <span class="fu">mean</span>(dep_delay, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb85-2"><a href=""></a>                      <span class="at">n =</span> <span class="fu">n</span>(), <span class="at">.by =</span> <span class="fu">c</span>(origin, dest) )</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 224 × 4
@@ -1779,9 +1810,9 @@ $ time_hour      &lt;dttm&gt; 2013-01-01 05:00:00, 2013-01-01 05:00:00, 2013-01-
 <div class="cell">
 <details class="code-fold">
 <summary>Código</summary>
-<div class="sourceCode cell-code" id="cb85"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href=""></a>df <span class="ot">&lt;-</span> <span class="fu">tibble</span>( <span class="at">x =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>,</span>
-<span id="cb85-2"><a href=""></a><span class="at">y =</span> <span class="fu">c</span>(<span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"a"</span>, <span class="st">"a"</span>, <span class="st">"b"</span>),</span>
-<span id="cb85-3"><a href=""></a><span class="at">z =</span> <span class="fu">c</span>(<span class="st">"K"</span>, <span class="st">"K"</span>, <span class="st">"L"</span>, <span class="st">"L"</span>, <span class="st">"K"</span>) )</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb87"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb87-1"><a href=""></a>df <span class="ot">&lt;-</span> <span class="fu">tibble</span>( <span class="at">x =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>,</span>
+<span id="cb87-2"><a href=""></a><span class="at">y =</span> <span class="fu">c</span>(<span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"a"</span>, <span class="st">"a"</span>, <span class="st">"b"</span>),</span>
+<span id="cb87-3"><a href=""></a><span class="at">z =</span> <span class="fu">c</span>(<span class="st">"K"</span>, <span class="st">"K"</span>, <span class="st">"L"</span>, <span class="st">"L"</span>, <span class="st">"K"</span>) )</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <ul>
@@ -1790,7 +1821,7 @@ $ time_hour      &lt;dttm&gt; 2013-01-01 05:00:00, 2013-01-01 05:00:00, 2013-01-
 <div class="cell">
 <details class="code-fold">
 <summary>Código</summary>
-<div class="sourceCode cell-code" id="cb86"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb86-1"><a href=""></a>df <span class="sc">|&gt;</span> <span class="fu">group_by</span>(y)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb88"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb88-1"><a href=""></a>df <span class="sc">|&gt;</span> <span class="fu">group_by</span>(y)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <ul>
@@ -1799,7 +1830,7 @@ $ time_hour      &lt;dttm&gt; 2013-01-01 05:00:00, 2013-01-01 05:00:00, 2013-01-
 <div class="cell">
 <details class="code-fold">
 <summary>Código</summary>
-<div class="sourceCode cell-code" id="cb87"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb87-1"><a href=""></a>df <span class="sc">|&gt;</span> <span class="fu">arrange</span>(y)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb89"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb89-1"><a href=""></a>df <span class="sc">|&gt;</span> <span class="fu">arrange</span>(y)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -1811,8 +1842,8 @@ $ time_hour      &lt;dttm&gt; 2013-01-01 05:00:00, 2013-01-01 05:00:00, 2013-01-
 <div class="cell">
 <details class="code-fold">
 <summary>Código</summary>
-<div class="sourceCode cell-code" id="cb88"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb88-1"><a href=""></a>df <span class="sc">|&gt;</span> <span class="fu">group_by</span>(y) <span class="sc">|&gt;</span></span>
-<span id="cb88-2"><a href=""></a><span class="fu">summarize</span>(<span class="at">mean_x =</span> <span class="fu">mean</span>(x))</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb90"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb90-1"><a href=""></a>df <span class="sc">|&gt;</span> <span class="fu">group_by</span>(y) <span class="sc">|&gt;</span></span>
+<span id="cb90-2"><a href=""></a><span class="fu">summarize</span>(<span class="at">mean_x =</span> <span class="fu">mean</span>(x))</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <ul>
@@ -1821,7 +1852,7 @@ $ time_hour      &lt;dttm&gt; 2013-01-01 05:00:00, 2013-01-01 05:00:00, 2013-01-
 <div class="cell">
 <details class="code-fold">
 <summary>Código</summary>
-<div class="sourceCode cell-code" id="cb89"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb89-1"><a href=""></a>df <span class="sc">|&gt;</span> <span class="fu">group_by</span>(y, z) <span class="sc">|&gt;</span> <span class="fu">summarize</span>(<span class="at">mean_x =</span> <span class="fu">mean</span>(x))</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb91"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href=""></a>df <span class="sc">|&gt;</span> <span class="fu">group_by</span>(y, z) <span class="sc">|&gt;</span> <span class="fu">summarize</span>(<span class="at">mean_x =</span> <span class="fu">mean</span>(x))</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <ul>
@@ -1830,8 +1861,8 @@ $ time_hour      &lt;dttm&gt; 2013-01-01 05:00:00, 2013-01-01 05:00:00, 2013-01-
 <div class="cell">
 <details class="code-fold">
 <summary>Código</summary>
-<div class="sourceCode cell-code" id="cb90"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb90-1"><a href=""></a>df <span class="sc">|&gt;</span> <span class="fu">group_by</span>(y, z) <span class="sc">|&gt;</span></span>
-<span id="cb90-2"><a href=""></a>  <span class="fu">summarize</span>(<span class="at">mean_x =</span> <span class="fu">mean</span>(x), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb92"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb92-1"><a href=""></a>df <span class="sc">|&gt;</span> <span class="fu">group_by</span>(y, z) <span class="sc">|&gt;</span></span>
+<span id="cb92-2"><a href=""></a>  <span class="fu">summarize</span>(<span class="at">mean_x =</span> <span class="fu">mean</span>(x), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -1843,13 +1874,13 @@ $ time_hour      &lt;dttm&gt; 2013-01-01 05:00:00, 2013-01-01 05:00:00, 2013-01-
 <div class="cell">
 <details class="code-fold">
 <summary>Código</summary>
-<div class="sourceCode cell-code" id="cb91"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href=""></a>df <span class="sc">|&gt;</span></span>
-<span id="cb91-2"><a href=""></a><span class="fu">group_by</span>(y, z) <span class="sc">|&gt;</span></span>
-<span id="cb91-3"><a href=""></a><span class="fu">summarize</span>(<span class="at">mean_x =</span> <span class="fu">mean</span>(x))</span>
-<span id="cb91-4"><a href=""></a><span class="do">### </span></span>
-<span id="cb91-5"><a href=""></a>df <span class="sc">|&gt;</span></span>
-<span id="cb91-6"><a href=""></a><span class="fu">group_by</span>(y, z) <span class="sc">|&gt;</span></span>
-<span id="cb91-7"><a href=""></a><span class="fu">mutate</span>(<span class="at">mean_x =</span> <span class="fu">mean</span>(x))</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb93"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb93-1"><a href=""></a>df <span class="sc">|&gt;</span></span>
+<span id="cb93-2"><a href=""></a><span class="fu">group_by</span>(y, z) <span class="sc">|&gt;</span></span>
+<span id="cb93-3"><a href=""></a><span class="fu">summarize</span>(<span class="at">mean_x =</span> <span class="fu">mean</span>(x))</span>
+<span id="cb93-4"><a href=""></a><span class="do">### </span></span>
+<span id="cb93-5"><a href=""></a>df <span class="sc">|&gt;</span></span>
+<span id="cb93-6"><a href=""></a><span class="fu">group_by</span>(y, z) <span class="sc">|&gt;</span></span>
+<span id="cb93-7"><a href=""></a><span class="fu">mutate</span>(<span class="at">mean_x =</span> <span class="fu">mean</span>(x))</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -1859,10 +1890,10 @@ $ time_hour      &lt;dttm&gt; 2013-01-01 05:00:00, 2013-01-01 05:00:00, 2013-01-
 <div class="cell">
 <details class="code-fold">
 <summary>Código</summary>
-<div class="sourceCode cell-code" id="cb92"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb92-1"><a href=""></a>flights <span class="sc">|&gt;</span> <span class="fu">group_by</span>(month) <span class="sc">|&gt;</span></span>
-<span id="cb92-2"><a href=""></a>  <span class="fu">mutate</span>(<span class="at">NoFalta=</span><span class="sc">!</span><span class="fu">is.na</span>(dep_delay)) <span class="sc">|&gt;</span></span>
-<span id="cb92-3"><a href=""></a>  <span class="fu">summarize</span>(<span class="at">avg_delay=</span><span class="fu">mean</span>(dep_delay,<span class="at">na.rm=</span> </span>
-<span id="cb92-4"><a href=""></a>  <span class="cn">TRUE</span>) , <span class="at">CuantosHay=</span><span class="fu">sum</span>(NoFalta), <span class="at">n=</span><span class="fu">n</span>() )</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb94"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb94-1"><a href=""></a>flights <span class="sc">|&gt;</span> <span class="fu">group_by</span>(month) <span class="sc">|&gt;</span></span>
+<span id="cb94-2"><a href=""></a>  <span class="fu">mutate</span>(<span class="at">NoFalta=</span><span class="sc">!</span><span class="fu">is.na</span>(dep_delay)) <span class="sc">|&gt;</span></span>
+<span id="cb94-3"><a href=""></a>  <span class="fu">summarize</span>(<span class="at">avg_delay=</span><span class="fu">mean</span>(dep_delay,<span class="at">na.rm=</span> </span>
+<span id="cb94-4"><a href=""></a>  <span class="cn">TRUE</span>) , <span class="at">CuantosHay=</span><span class="fu">sum</span>(NoFalta), <span class="at">n=</span><span class="fu">n</span>() )</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 12 × 4
@@ -1880,6 +1911,36 @@ $ time_hour      &lt;dttm&gt; 2013-01-01 05:00:00, 2013-01-01 05:00:00, 2013-01-
 10    10      6.24      28653 28889
 11    11      5.44      27035 27268
 12    12     16.6       27110 28135</code></pre>
+</div>
+</div>
+</section>
+<section id="cálculo-de-cuántos-nas-hay-1" class="slide level2 center">
+<h2>Cálculo de cuántos NA’s hay</h2>
+<p>solución a la pregunta cuántos <code>NA</code> hay en una columna ?</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb96"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb96-1"><a href=""></a>flights <span class="sc">|&gt;</span> <span class="fu">group_by</span>(month) <span class="sc">|&gt;</span></span>
+<span id="cb96-2"><a href=""></a>  <span class="fu">mutate</span>(<span class="at">NoFalta=</span><span class="sc">!</span><span class="fu">is.na</span>(dep_delay)) <span class="sc">|&gt;</span></span>
+<span id="cb96-3"><a href=""></a>  <span class="fu">summarize</span>(<span class="at">avg_delay=</span><span class="fu">mean</span>(dep_delay,<span class="at">na.rm=</span> </span>
+<span id="cb96-4"><a href=""></a>  <span class="cn">TRUE</span>) , <span class="at">CuantosHay=</span><span class="fu">sum</span>(NoFalta), <span class="at">n=</span><span class="fu">n</span>() )<span class="sc">|&gt;</span><span class="fu">mutate</span>(<span class="at">NAs=</span>n<span class="sc">-</span>CuantosHay) </span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 12 × 5
+   month avg_delay CuantosHay     n   NAs
+   &lt;int&gt;     &lt;dbl&gt;      &lt;int&gt; &lt;int&gt; &lt;int&gt;
+ 1     1     10.0       26483 27004   521
+ 2     2     10.8       23690 24951  1261
+ 3     3     13.2       27973 28834   861
+ 4     4     13.9       27662 28330   668
+ 5     5     13.0       28233 28796   563
+ 6     6     20.8       27234 28243  1009
+ 7     7     21.7       28485 29425   940
+ 8     8     12.6       28841 29327   486
+ 9     9      6.72      27122 27574   452
+10    10      6.24      28653 28889   236
+11    11      5.44      27035 27268   233
+12    12     16.6       27110 28135  1025</code></pre>
 </div>
 </div>
 
